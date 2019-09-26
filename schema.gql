@@ -8,11 +8,26 @@ type Account {
   name: String!
 }
 
-type Keychange {
+type Auth {
   serverKey: String!
+  salt(xlogin: String!): String!
+  login(xhpassword: String!, xlogin: String!): Token!
+  user: User!
 }
 
 type Query {
-  keychange(clientKey: String!): Keychange!
+  auth(clientKey: String!): Auth!
   accounts(name: String!): Account
+}
+
+type Token {
+  seq: Int!
+  token: String!
+  refresh: String!
+}
+
+type User {
+  id: String!
+  login: String!
+  name: String!
 }

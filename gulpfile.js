@@ -17,12 +17,8 @@ async function run() {
 async function test() {
   await build();
   const proc = spawn("node", ["dist/src/server.js"]);
-  proc.stdout.on("data", data => {
-    process.stdout.write(data);
-  })
-  proc.stderr.on("data", data => {
-    process.stderr.write(data);
-  })
+  proc.stdout.pipe(process.stdout);
+  proc.stderr.pipe(process.stderr);
   console.log("npx mocha -r ts-node/register --color -t 90000 test/**/*.spec.ts");
   await shell.exec(
     `npx mocha -r ts-node/register --color -t 90000 test/**/*.spec.ts`,
@@ -30,7 +26,7 @@ async function test() {
       env: {
         PATH: process.env.PATH,
         NODE_ENV: "development",
-        TEST_SERVER: `http://localhost:3000`,
+        TEST_SERVER: `http://localhost:4000`,
         TEST: "true"
       },
       async: false

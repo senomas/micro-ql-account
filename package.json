@@ -8,6 +8,7 @@
   "scripts": {
     "build": "npx tsc -p .",
     "start": "yarn build && node dist/src/server.js",
+    "test": "npx gulp test",
     "dev": "nodemon"
   },
   "nodemonConfig": {
@@ -40,6 +41,7 @@
     "@types/bunyan": "^1.8.6",
     "@types/js-yaml": "^3.12.1",
     "@types/ws": "^6.0.3",
+    "apollo-server-errors": "^2.3.3",
     "bunyan": "^1.8.12",
     "graphql-yoga": "^1.18.3",
     "js-yaml": "^3.13.1",

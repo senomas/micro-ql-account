@@ -1,5 +1,5 @@
 import { Arg, FieldResolver, Query, Resolver, Root } from "type-graphql";
-import Account from "../schemas/account";
+import { Account } from "../schemas/account";
 
 @Resolver(of => Account)
 export default class {
