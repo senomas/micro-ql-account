@@ -1,31 +1,21 @@
 const shell = require("shelljs");
 
-async function generateSchema() {
-  await shell.exec("npx graphql-schema-typescript generate-ts src/schema/schema.graphql --output src/schema.d.ts", {
-    async: false
-  });
-}
-
 async function build() {
-  await generateSchema();
-  await shell.exec("tsc -p .", {
-    async: false
-  });
-  await shell.exec("ncp src/schema dist/schema", {
+  await shell.exec("yarn build", {
     async: false
   });
 }
 
 async function run() {
   await build();
-  await shell.exec("node dist/server.js", {
+  await shell.exec("node dist/src/server.js", {
     async: false
   });
 }
 
 async function test() {
   await build();
-  await shell.exec("node dist/server.js", {
+  await shell.exec("node dist/src/server.js", {
     async: true,
     silent: true
   });
@@ -46,7 +36,6 @@ async function test() {
 }
 
 module.exports = {
-  generateSchema,
   build,
   run,
   test

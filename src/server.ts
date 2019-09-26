@@ -1,23 +1,24 @@
 import * as bunyan from "bunyan";
-import express from 'express';
-import { ApolloServer } from 'apollo-server-express';
-import depthLimit from 'graphql-depth-limit';
-import { createServer } from 'http';
-import compression from 'compression';
-import cors from 'cors';
-import schema from './schema';
+import { GraphQLServer } from "graphql-yoga";
+import "reflect-metadata";
+import { buildSchema } from "type-graphql";
+import AuthResolver from "./resolvers/auth";
+import AccountResolver from "./resolvers/account";
 
-export const logger = bunyan.createLogger({ name: "server" });
+async function bootstrap() {
+  const schema = await buildSchema({
+    resolvers: [AuthResolver, AccountResolver],
+    emitSchemaFile: true,
+  });
 
-const app = express();
-const server = new ApolloServer({
-  schema,
-  validationRules: [depthLimit(7)],
-});
-app.use('*', cors());
-app.use(compression());
-server.applyMiddleware({ app, path: '/graphql' });
-const httpServer = createServer(app);
-httpServer.listen(
-  { port: 3000 },
-  (): void => logger.info(`GraphQL is now running on http://localhost:3000/graphql`));
+  const server = new GraphQLServer({
+    schema,
+  });
+
+  server.start({
+    endpoint: "/graphql",
+    playground: '/graphql'
+  }, () => console.log("Server is running on http://localhost:4000"));
+}
+
+bootstrap();

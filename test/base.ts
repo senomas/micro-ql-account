@@ -1,7 +1,7 @@
 import * as chai from "chai";
 import chaiHttp = require("chai-http");
 import * as fs from "fs";
-// import crypto = require("crypto");
+import crypto = require("crypto");
 import * as yaml from "js-yaml";
 
 chai.use(chaiHttp);
@@ -32,5 +32,4 @@ export class BaseTest {
       }
     }
   }
-
 }
