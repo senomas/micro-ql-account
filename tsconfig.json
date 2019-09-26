@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "rootDirs": ["./src", "./test"],
+    "outDir": "./dist",
+    "sourceMap": true,
+    "module": "commonjs",
+    "target": "es2017",
+    "lib": ["dom"],
+    // "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "allowJs": true
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,43 @@
+type Query {
+  privileges: [String]!
+  keychange(
+    key: String!
+    token: String
+  ): Keychange!
+  salt(
+    key: String!
+    login: String!
+    algorithm: String
+  ): String!
+  login(
+    key: String!
+    login: String!
+    password: String!
+    token: String
+    forced: Boolean
+  ): TokenResponse
+  accounts(
+    first: Int!
+  ): [Account]!
+}
+type Keychange {
+  key: String!
+}
+type TokenResponse {
+  seq: Int!
+  token: String!
+  refresh: String!
+  user: Account
+}
+type Account {
+  id: ID!
+  name: String!
+}
+type AccountSecurity {
+  login: String!
+  salt: String
+  password: String!
+  roles: [String]!
+  blocked: String
+  blockedReason: String
+}
