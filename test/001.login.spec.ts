@@ -12,10 +12,11 @@ export class LoginTest extends BaseTest {
     console.log("LOGIN");
     const res = await this.http.post("/graphql").send({
       query: `{
-      keychange(clientKey: "123123") {
-        serverKey
-      }
-    }`});
+        keychange(key: "123123") {
+          key
+        }
+      }`
+    });
     console.log("RES", res.status, res.body);
   }
 }

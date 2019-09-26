@@ -1,4 +1,5 @@
 const shell = require("shelljs");
+const { spawn } = require('child_process');
 
 async function build() {
   await shell.exec("yarn build", {
@@ -15,10 +16,13 @@ async function run() {
 
 async function test() {
   await build();
-  await shell.exec("node dist/src/server.js", {
-    async: true,
-    silent: true
-  });
+  const proc = spawn("node", ["dist/src/server.js"]);
+  proc.stdout.on("data", data => {
+    process.stdout.write(data);
+  })
+  proc.stderr.on("data", data => {
+    process.stderr.write(data);
+  })
   console.log("npx mocha -r ts-node/register --color -t 90000 test/**/*.spec.ts");
   await shell.exec(
     `npx mocha -r ts-node/register --color -t 90000 test/**/*.spec.ts`,
@@ -32,7 +36,7 @@ async function test() {
       async: false
     }
   );
-  process.exit(0);
+  proc.kill();
 }
 
 module.exports = {

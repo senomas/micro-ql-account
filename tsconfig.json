@@ -6,7 +6,10 @@
     "module": "commonjs",
     "target": "es2017",
     "experimentalDecorators": true,
-    "allowJs": true
+    "emitDecoratorMetadata": true,
+    "allowJs": true,
+    "strict": true,
+    "strictPropertyInitialization": false
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules"]
