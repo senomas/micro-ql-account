@@ -1,19 +1,15 @@
-import * as chai from "chai";
+import chai = require("chai");
 import chaiHttp = require("chai-http");
-import * as fs from "fs";
+import fs = require("fs");
 import crypto = require("crypto");
-import * as yaml from "js-yaml";
+import yaml = require("js-yaml");
 
 chai.use(chaiHttp);
-
-const expect = chai.expect;
 
 export const values = {} as any;
 let config: any = null;
 
 export class BaseTest {
-  protected username = "admin+test@hanoman.co.id";
-  protected password = "dodol123";
 
   protected http = (chai as any).request(process.env.TEST_SERVER);
   protected config: any = config;

@@ -1,8 +1,11 @@
 import { ApolloError } from 'apollo-server-errors';
 import * as crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
 
-import { User, Token } from '../schemas/auth';
-import { accountKey, config, logger } from './service';
+import { config, keyEncoder } from '../config';
+import { Token } from '../schemas/auth';
+import { mongodb } from './mongodb';
+import { accountKey, logger } from './service';
 
 export class AuthService {
   public serverKey: string;
@@ -31,17 +34,18 @@ export class AuthService {
     );
   }
 
-  public salt(xlogin: string): string {
-    const salt = "plain-salt";
+  public async salt(xlogin: string): Promise<string> {
     const aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
       aesd.update(Buffer.from(xlogin, "base64")),
       aesd.final()
     ]).toString("utf8");
-    if (login === "seno") {
+    const user = await mongodb.models.user.findOne({ login });
+    logger.info({ login, user }, "get usere");
+    if (user) {
       const aes = crypto.createCipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
       return Buffer.concat([
-        aes.update(Buffer.from(salt, "utf8")),
+        aes.update(Buffer.from(user.salt, "utf8")),
         aes.final()
       ]).toString("base64")
     }
@@ -52,37 +56,47 @@ export class AuthService {
     });
   }
 
-  public login(xlogin: string, xhpassword: string): Token {
+  public async login(xlogin: string, xhpassword: string): Promise<Token> {
     let aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
       aesd.update(Buffer.from(xlogin, "base64")),
       aesd.final()
     ]).toString("utf8");
-    if (login === "seno") {
-      const salt = "plain-salt";
-      const password = "dodol123";
-      const hpassword = crypto.pbkdf2Sync(
-        password,
-        salt,
-        config.auth.pbkdf2.iterations,
-        config.auth.pbkdf2.hashBytes,
-        "sha512"
-      ).toString("base64");
+    const user = await mongodb.models.user.findOne({ login });
+    logger.info({ login, user }, "get user");
+    if (user) {
       aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
       const hpasswordInput = Buffer.concat([
         aesd.update(Buffer.from(xhpassword, "base64")),
         aesd.final()
       ]).toString("base64");
-      if (hpassword === hpasswordInput) {
+      if (user.password === hpasswordInput) {
+        logger.info({ auth: config.keys.auth }, "keys");
+        const pem = keyEncoder.encodePrivate(
+          config.keys.auth.pkey,
+          "raw",
+          "pem"
+        );
+        const token = jwt.sign({
+          login
+        }, pem, {
+          algorithm: "ES256",
+          keyid: "auth",
+          expiresIn: config.auth.tokenExpiry
+        });
         return {
           seq: 1000,
-          token: "TOKEN",
+          token,
           refresh: "REFRESH"
         }
       }
-      logger.info({ xlogin, login, hpassword, hpasswordInput }, "invalid login");
+      logger.info({ xlogin, login, user, hpasswordInput }, "invalid login");
       throw new ApolloError("invalid login", "InvalidLogin", {
         xlogin,
+        login,
+        xhpassword,
+        hpasswordInput,
+        user
       });
     }
     logger.info({ xlogin, login }, "invalid login");

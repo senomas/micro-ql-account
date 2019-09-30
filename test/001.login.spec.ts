@@ -48,7 +48,7 @@ export class LoginTest extends BaseTest {
       );
     let aes = crypto.createCipheriv("aes-256-ctr", aesKey, aesSalt);
     const xlogin = Buffer.concat([
-      aes.update(Buffer.from("seno", "utf8")),
+      aes.update(Buffer.from("admin", "utf8")),
       aes.final()
     ]).toString("base64");
 
@@ -72,17 +72,19 @@ export class LoginTest extends BaseTest {
       aesd.update(Buffer.from(xsalt, "base64")),
       aesd.final()
     ]).toString("utf8");
-    expect(salt, res.request.method + " " + res.request.url).to.eql("plain-salt");
 
     aes = crypto.createCipheriv("aes-256-ctr", aesKey, aesSalt);
+    const hpassword = crypto.pbkdf2Sync(
+      "dodol123",
+      Buffer.from(salt, "base64"),
+      this.config.auth.pbkdf2.iterations,
+      this.config.auth.pbkdf2.hashBytes,
+      "sha512"
+    );
+    console.log("HPASSWORD", hpassword.toString("base64"));
+
     const xhpassword = Buffer.concat([
-      aes.update(crypto.pbkdf2Sync(
-        "dodol123",
-        salt,
-        this.config.auth.pbkdf2.iterations,
-        this.config.auth.pbkdf2.hashBytes,
-        "sha512"
-      )),
+      aes.update(hpassword),
       aes.final()
     ]).toString("base64");
 

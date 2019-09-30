@@ -12,16 +12,16 @@ export default class {
     return new AuthService(clientKey);
   }
 
-  @FieldResolver()
-  salt(@Root() ctx: AuthService, @Arg("xlogin") xlogin: string, @Info() info: GraphQLResolveInfo): string {
+  @FieldResolver(of => String)
+  async salt(@Root() ctx: AuthService, @Arg("xlogin") xlogin: string, @Info() info: GraphQLResolveInfo): Promise<string> {
     logger.info({ info }, "salt info");
-    return ctx.salt(xlogin);
+    return await ctx.salt(xlogin);
   }
 
-  @FieldResolver()
-  login(@Root() ctx: AuthService, @Arg("xlogin") xlogin: string, @Arg("xhpassword") xhpassword: string, @Info() info: GraphQLResolveInfo): Token {
+  @FieldResolver(of => Token)
+  async login(@Root() ctx: AuthService, @Arg("xlogin") xlogin: string, @Arg("xhpassword") xhpassword: string, @Info() info: GraphQLResolveInfo): Promise<Token> {
     logger.info({ info }, "login info");
-    return ctx.login(xlogin, xhpassword);
+    return await ctx.login(xlogin, xhpassword);
   }
 
   @FieldResolver()

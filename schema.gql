@@ -16,8 +16,8 @@ type Auth {
 }
 
 type Query {
-  auth(clientKey: String!): Auth!
   accounts(name: String!): Account
+  auth(clientKey: String!): Auth!
 }
 
 type Token {
