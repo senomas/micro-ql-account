@@ -10,22 +10,52 @@ type Auth {
   refresh(refresh: String!): Token!
 }
 
+type DeleteResponse {
+  deleted: Int!
+}
+
+input FilterRoleInput {
+  id: ID
+  code: String
+  name: String
+  nameRegex: String
+}
+
+type Mutation {
+  addRole(data: NewRoleInput!): Role!
+  updateRoles(filter: FilterRoleInput, data: UpdateRoleInput!): UpdateResponse!
+  deleteRoles(filter: FilterRoleInput!): DeleteResponse!
+}
+
+input NewRoleInput {
+  code: String!
+  name: String!
+  description: String
+  privileges: [String!]!
+}
+
 type PartialRole {
   items: [Role!]!
+  total: Int!
+}
+
+type PartialUser {
+  items: [User!]!
   total: Int!
 }
 
 type Query {
   auth(clientKey: String!): Auth!
   me: UserToken!
-  roles(skip: Int, limit: Int, code: String, name: String, nameRegex: String): PartialRole!
+  roles(skip: Int, limit: Int, filter: FilterRoleInput): PartialRole!
+  users(skip: Int, limit: Int, login: String, name: String, nameRegex: String): PartialUser!
 }
 
 type Role {
   id: ID!
   code: String!
   name: String!
-  description: String
+  description: String!
   privileges: [String!]!
 }
 
@@ -33,6 +63,24 @@ type Token {
   seq: String!
   token: String!
   refresh: String!
+}
+
+type UpdateResponse {
+  matched: Int
+  modified: Int!
+}
+
+input UpdateRoleInput {
+  name: String!
+  description: String
+  privileges: [String!]!
+}
+
+type User {
+  id: String!
+  login: String!
+  name: String!
+  roles: [String!]!
 }
 
 type UserToken {

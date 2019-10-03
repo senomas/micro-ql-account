@@ -30,9 +30,9 @@ export class RoleCrudTest extends BaseTest {
         }
       }`
     });
-    console.log("RES", res.status, res.request.url, JSON.stringify(res.body, undefined, 2));
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
+    const resLog = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    expect(res.status, resLog).to.eql(200);
+    expect(res.body, resLog).to.not.haveOwnProperty("errors");
   }
 
   @test
@@ -41,7 +41,7 @@ export class RoleCrudTest extends BaseTest {
     req.set("Authorization", `Bearer ${values.token}`);
     const res = await req.send({
       query: `{
-        roles(code: "admin") {
+        roles(filter: { code: "admin" }) {
           total
           items {
             id
@@ -52,9 +52,62 @@ export class RoleCrudTest extends BaseTest {
         }
       }`
     });
-    // console.log("RES", res.status, res.request.url, JSON.stringify(res.body, undefined, 2));
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
+    const resLog = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    expect(res.status, resLog).to.eql(200);
+    expect(res.body, resLog).to.not.haveOwnProperty("errors");
+  }
+
+  @test
+  public async insertNewRole() {
+    const req = this.http.post("/graphql");
+    req.set("Authorization", `Bearer ${values.token}`);
+    const res = await req.send({
+      query: `mutation { 
+        addRole(data: {code: "demo", name: "Demo", privileges: ["demo"]}) {
+          id
+          code
+          name
+          privileges
+        }
+      }`
+    });
+    const resLog = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    expect(res.status, resLog).to.eql(200);
+    expect(res.body, resLog).to.not.haveOwnProperty("errors");
+  }
+
+  @test
+  public async updateRole() {
+    const req = this.http.post("/graphql");
+    req.set("Authorization", `Bearer ${values.token}`);
+    const res = await req.send({
+      query: `mutation {
+        updateRoles(filter: { code: "demo" }, data: {name: "Demox", privileges: ["demox"]}) {
+          matched
+          modified
+        }
+      }`
+    });
+    const resLog = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    expect(res.status, resLog).to.eql(200);
+    expect(res.body, resLog).to.not.haveOwnProperty("errors");
+    expect(res.body.data.updateRoles.modified, resLog).to.eql(1);
+  }
+
+  @test
+  public async deleteRoles() {
+    const req = this.http.post("/graphql");
+    req.set("Authorization", `Bearer ${values.token}`);
+    const res = await req.send({
+      query: `mutation { 
+        deleteRoles(filter: { code: "demo" }) {
+          deleted
+        }
+      }`
+    });
+    const resLog = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    expect(res.status, resLog).to.eql(200);
+    expect(res.body, resLog).to.not.haveOwnProperty("errors");
+    expect(res.body.data.deleteRoles.deleted, resLog).to.eql(1);
   }
 }
-

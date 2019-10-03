@@ -1,3 +1,4 @@
+require('source-map-support').install();
 import 'reflect-metadata';
 
 import { ApolloServer } from 'apollo-server-express';
@@ -9,19 +10,17 @@ import { customAuthChecker } from './authorization';
 import { config } from './config';
 import { AuthResolver } from './resolvers/auth';
 import { RoleResolver } from './resolvers/role';
+import { UserResolver } from './resolvers/user';
 import { mongodb } from './services/mongodb';
 import { initRole } from './services/role';
 import { logger } from './services/service';
 import { initUser } from './services/user';
 
-require('source-map-support').install();
-
 import fs = require("fs");
 import path = require("path");
-
 export async function bootstrap() {
   const schema = await buildSchema({
-    resolvers: [AuthResolver, RoleResolver],
+    resolvers: [AuthResolver, RoleResolver, UserResolver, null],
     authChecker: customAuthChecker,
     emitSchemaFile: true,
     dateScalarMode: "isoDate"

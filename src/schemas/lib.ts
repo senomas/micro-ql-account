@@ -21,3 +21,18 @@ export class PartialArgs {
   @Field(type => Int, { nullable: true })
   limit: number;
 }
+
+@ObjectType()
+export class UpdateResponse {
+  @Field(type => Int, { nullable: true })
+  matched: number;
+
+  @Field(type => Int)
+  modified: number;
+}
+
+@ObjectType()
+export class DeleteResponse {
+  @Field(type => Int)
+  deleted: number;
+}

@@ -24,12 +24,11 @@
     "ext": "ts"
   },
   "devDependencies": {
-    "braces": "3.0.2",
     "chai": "^4.2.0",
     "chai-graphql": "^4.0.0",
     "chai-http": "^4.3.0",
     "gulp": "^4.0.2",
-    "micromatch": "^4.0.2",
+    "gulp-typescript": "^5.0.1",
     "mocha": "^6.2.1",
     "mocha-typescript": "^1.1.17",
     "nodemon": "^1.19.2",

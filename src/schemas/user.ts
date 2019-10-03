@@ -1,16 +1,19 @@
-import { Field, ID, ObjectType, ArgsType } from 'type-graphql';
+import { Field, ID, ObjectType, ArgsType, InputType } from 'type-graphql';
 import { PartialArgs, Partial } from './lib';
 
 @ObjectType()
 export class User {
-  @Field(type => String)
+  @Field()
   id: string;
 
-  @Field(type => String)
+  @Field()
   login: string;
 
-  @Field(type => String)
+  @Field()
   name: string;
+
+  @Field(type => [String])
+  roles: string[];
 }
 
 @ArgsType()

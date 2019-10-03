@@ -13,6 +13,18 @@ export class MongoModel {
     this.mongodb.models[name] = this;
   }
 
+  public async insertOne(value, options = null) {
+    return this.collection.insertOne(value, options);
+  }
+
+  public async updateMany(filter, update, options = null) {
+    return this.collection.updateMany(filter, update, options);
+  }
+
+  public async deleteMany(filter, options = null) {
+    return this.collection.deleteMany(filter, options);
+  }
+
   public async findOne(query, options = null) {
     return this.collection.findOne(query, options);
   }
