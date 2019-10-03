@@ -1,3 +1,4 @@
+const { dest, src } = require("gulp");
 const shell = require("shelljs");
 const { spawn } = require('child_process');
 
@@ -5,6 +6,10 @@ async function build() {
   await shell.exec("yarn build", {
     async: false
   });
+}
+
+function copyData() {
+  return src("src/data/*.{json,yaml}").pipe(dest("dist/data"));
 }
 
 async function dockerUp() {
@@ -49,6 +54,7 @@ async function test() {
 }
 
 module.exports = {
+  copyData,
   build,
   dockerUp,
   dockerDown,
