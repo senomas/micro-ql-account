@@ -1,0 +1,32 @@
+[
+  {
+    "code": "admin",
+    "name": "Admin",
+    "description": "Admin",
+    "privileges": [
+      "user.read",
+      "user.update",
+      "user.activate",
+      "user.deactivate",
+      "role.create",
+      "role.read",
+      "role.update",
+      "role.delete"
+    ]
+  },
+  {
+    "code": "staff",
+    "name": "Staff",
+    "description": "Staff",
+    "privileges": [
+      "user.read",
+      "user.update",
+      "user.delete",
+      "user.activate",
+      "user.deactivate",
+      "role.create",
+      "role.read",
+      "role.update"
+    ]
+  }
+]

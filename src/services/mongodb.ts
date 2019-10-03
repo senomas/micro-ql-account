@@ -1,4 +1,4 @@
-import { Collection, Db, Decimal128, MongoClient, ObjectID } from "mongodb";
+import { Collection, Cursor, Db, MongoClient } from "mongodb";
 import { logger } from "./service";
 
 export class MongoModel {
@@ -13,8 +13,16 @@ export class MongoModel {
     this.mongodb.models[name] = this;
   }
 
-  public async findOne(filter) {
-    return this.collection.findOne(filter);
+  public async findOne(query, options = null) {
+    return this.collection.findOne(query, options);
+  }
+
+  public count(query, options = null) {
+    return this.collection.countDocuments(query, options);
+  }
+
+  public find(query, options = null): Cursor {
+    return this.collection.find(query, options);
   }
 
   public async load(data) {
@@ -25,7 +33,10 @@ export class MongoModel {
       }
       return res;
     }
-    return this.collection.update(await this.loadKey(data), await this.loadEnhance(data), {
+    return this.collection.updateOne(
+      await this.loadKey(data), {
+      $set: await this.loadEnhance(data)
+    }, {
       upsert: true
     });
   }
@@ -52,7 +63,8 @@ export class Mongodb {
     logger.info({ mongoUri, config: config.mongodb }, "mongoUri");
 
     this.db = (await MongoClient.connect(mongoUri, {
-      useNewUrlParser: true
+      useNewUrlParser: true,
+      useUnifiedTopology: true
     })).db(config.mongodb.database);
 
     const sequence = this.db.collection("sequence");

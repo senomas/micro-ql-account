@@ -1,0 +1,32 @@
+[
+  {
+    "login": "admin",
+    "name": "Admin",
+    "password": "dodol123",
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "login": "budi",
+    "name": "Budi",
+    "password": "dodol123",
+    "roles": [
+      "staff"
+    ]
+  },
+  {
+    "login": "citra",
+    "name": "Citra",
+    "password": "dodol123",
+    "roles": [
+      "staff"
+    ]
+  },
+  {
+    "login": "doni",
+    "name": "Doni",
+    "password": "dodol123",
+    "roles": []
+  }
+]

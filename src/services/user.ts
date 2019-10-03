@@ -3,7 +3,7 @@ import { MongoModel, mongodb } from './mongodb';
 
 import crypto = require("crypto");
 
-export function initUser() {
+export async function initUser() {
   mongodb.models.user = new MongoModel(mongodb, "user");
   mongodb.models.user.loadKey = (data) => ({ login: data.login });
   mongodb.models.user.loadEnhance = async (data) => {

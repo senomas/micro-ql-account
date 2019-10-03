@@ -22,7 +22,7 @@ async function dockerDown() {
 async function run() {
   await build();
   await dockerUp();
-  await shell.exec("node dist/src/server.js", {
+  await shell.exec("node dist/server.js", {
     async: false
   });
 }

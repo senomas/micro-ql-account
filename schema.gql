@@ -3,31 +3,41 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
-type Account {
-  id: ID!
-  name: String!
-}
-
 type Auth {
   serverKey: String!
   salt(xlogin: String!): String!
   login(xhpassword: String!, xlogin: String!): Token!
-  user: User!
+  refresh(refresh: String!): Token!
+}
+
+type PartialRole {
+  items: [Role!]!
+  total: Int!
 }
 
 type Query {
-  accounts(name: String!): Account
   auth(clientKey: String!): Auth!
+  me: UserToken!
+  roles(skip: Int, limit: Int, code: String, name: String, nameRegex: String): PartialRole!
+}
+
+type Role {
+  id: ID!
+  code: String!
+  name: String!
+  description: String
+  privileges: [String!]!
 }
 
 type Token {
-  seq: Int!
+  seq: String!
   token: String!
   refresh: String!
 }
 
-type User {
-  id: String!
-  login: String!
+type UserToken {
+  clientKey: ID!
+  xlogin: String!
   name: String!
+  privileges: [String!]!
 }

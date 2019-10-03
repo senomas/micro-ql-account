@@ -10,7 +10,7 @@ export class Auth {
 
 @ObjectType()
 export class Token {
-  @Field(type => Int)
+  @Field(type => String)
   seq: number;
 
   @Field(type => String)
@@ -21,13 +21,16 @@ export class Token {
 }
 
 @ObjectType()
-export class User {
-  @Field(type => String)
-  id: string;
+export class UserToken {
+  @Field(type => ID)
+  clientKey: string;
 
   @Field(type => String)
-  login: string;
+  xlogin: string;
 
   @Field(type => String)
   name: string;
+
+  @Field(type => [String])
+  privileges: string[];
 }
