@@ -1,5 +1,5 @@
-import { Field, ID, ObjectType, ArgsType, InputType } from 'type-graphql';
-import { Partial, PartialArgs } from './lib';
+import { Field, ID, ObjectType, InputType } from 'type-graphql';
+import { Partial } from './lib';
 
 @ObjectType()
 export class Role {
@@ -20,7 +20,7 @@ export class Role {
 }
 
 @InputType()
-export class NewRoleInput {
+export class AddRoleInput {
   @Field()
   code: string;
 
@@ -59,21 +59,6 @@ export class FilterRoleInput {
 
   @Field({ nullable: true })
   nameRegex: string;
-}
-
-@ArgsType()
-export class FindRoleArgs extends PartialArgs {
-  @Field({ nullable: true })
-  filter?: FilterRoleInput;
-}
-
-@ArgsType()
-export class UpdateRoleArgs {
-  @Field({ nullable: true })
-  filter?: FilterRoleInput;
-
-  @Field()
-  data: UpdateRoleInput;
 }
 
 @ObjectType()

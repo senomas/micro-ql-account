@@ -3,6 +3,20 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+input AddRoleInput {
+  code: String!
+  name: String!
+  description: String
+  privileges: [String!]!
+}
+
+input AddUserInput {
+  login: String!
+  name: String!
+  description: String
+  roles: [String!]!
+}
+
 type Auth {
   serverKey: String!
   salt(xlogin: String!): String!
@@ -21,17 +35,20 @@ input FilterRoleInput {
   nameRegex: String
 }
 
-type Mutation {
-  addRole(data: NewRoleInput!): Role!
-  updateRoles(filter: FilterRoleInput, data: UpdateRoleInput!): UpdateResponse!
-  deleteRoles(filter: FilterRoleInput!): DeleteResponse!
+input FilterUserInput {
+  id: ID
+  login: String
+  name: String
+  nameRegex: String
 }
 
-input NewRoleInput {
-  code: String!
-  name: String!
-  description: String
-  privileges: [String!]!
+type Mutation {
+  addUser(data: AddUserInput!): User!
+  updateUsers(data: UpdateUserInput!, filter: FilterUserInput!): UpdateResponse!
+  deleteUsers(filter: FilterUserInput!): DeleteResponse!
+  addRole(data: AddRoleInput!): Role!
+  updateRoles(data: UpdateRoleInput!, filter: FilterRoleInput!): UpdateResponse!
+  deleteRoles(filter: FilterRoleInput!): DeleteResponse!
 }
 
 type PartialRole {
@@ -45,10 +62,10 @@ type PartialUser {
 }
 
 type Query {
+  users(filter: FilterUserInput, limit: Float, skip: Float): PartialUser!
+  roles(filter: FilterRoleInput, limit: Float, skip: Float): PartialRole!
   auth(clientKey: String!): Auth!
   me: UserToken!
-  roles(skip: Int, limit: Int, filter: FilterRoleInput): PartialRole!
-  users(skip: Int, limit: Int, login: String, name: String, nameRegex: String): PartialUser!
 }
 
 type Role {
@@ -74,6 +91,12 @@ input UpdateRoleInput {
   name: String!
   description: String
   privileges: [String!]!
+}
+
+input UpdateUserInput {
+  name: String!
+  description: String
+  roles: [String!]!
 }
 
 type User {

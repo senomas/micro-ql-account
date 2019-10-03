@@ -1,6 +1,7 @@
 const { dest, src } = require("gulp");
 const shell = require("shelljs");
 const { spawn } = require('child_process');
+const args = require("yargs").argv;
 
 async function tsc() {
   await shell.exec("npx tsc -p .", {
@@ -42,9 +43,15 @@ async function test() {
   const proc = spawn("node", ["dist/server.js"]);
   proc.stdout.pipe(process.stdout);
   proc.stderr.pipe(process.stderr);
-  console.log("npx mocha -r ts-node/register --color -t 90000 test/**/*.spec.ts");
-  await shell.exec(
-    `npx mocha -r ts-node/register --color -t 90000 test/**/*.spec.ts`,
+  console.log(
+    `npx mocha -r ts-node/register ${
+    args.bail ? "-b" : ""
+    } --color -t 90000 test/**/*${args.mod ? `${args.mod}*` : ""}.spec.ts`
+  );
+  shell.exec(
+    `npx mocha -r ts-node/register  ${
+    args.bail ? "-b" : ""
+    } --color -t 90000 test/**/*${args.mod ? `${args.mod}*` : ""}.spec.ts`,
     {
       env: {
         PATH: process.env.PATH,

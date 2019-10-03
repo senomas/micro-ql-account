@@ -41,7 +41,7 @@ export class UserCrudTest extends BaseTest {
     req.set("Authorization", `Bearer ${values.token}`);
     const res = await req.send({
       query: `{
-        users(nameRegex: ".*u.*") {
+        users(filter: { nameRegex: "u" }) {
           total
           items {
             id

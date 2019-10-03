@@ -58,6 +58,29 @@ export class RoleCrudTest extends BaseTest {
   }
 
   @test
+  public async testListRolesByNameRegex() {
+    const req = this.http.post("/graphql");
+    req.set("Authorization", `Bearer ${values.token}`);
+    const res = await req.send({
+      query: `{
+        roles(filter: { nameRegex: "a" }) {
+          total
+          items {
+            id
+            code
+            name
+            privileges
+          }
+        }
+      }`
+    });
+    const resLog = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    expect(res.status, resLog).to.eql(200);
+    expect(res.body, resLog).to.not.haveOwnProperty("errors");
+    expect(res.body.data.roles.total, resLog).to.eql(1);
+  }
+
+  @test
   public async insertNewRole() {
     const req = this.http.post("/graphql");
     req.set("Authorization", `Bearer ${values.token}`);

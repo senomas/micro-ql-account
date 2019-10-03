@@ -1,5 +1,5 @@
-import { Field, ID, ObjectType, ArgsType, InputType } from 'type-graphql';
-import { PartialArgs, Partial } from './lib';
+import { Field, ID, ObjectType, InputType } from 'type-graphql';
+import { Partial } from './lib';
 
 @ObjectType()
 export class User {
@@ -16,19 +16,48 @@ export class User {
   roles: string[];
 }
 
-@ArgsType()
-export class FindUserArgs extends PartialArgs {
-  @Field(type => String, { nullable: true })
+@InputType()
+export class AddUserInput {
+  @Field()
   login: string;
 
-  @Field(type => String, { nullable: true })
+  @Field()
   name: string;
 
-  @Field(type => String, { nullable: true })
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(type => [String])
+  roles: string[];
+}
+
+@InputType()
+export class UpdateUserInput {
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(type => [String])
+  roles: string[];
+}
+
+@InputType()
+export class FilterUserInput {
+  @Field(type => ID, { nullable: true })
+  id: string;
+
+  @Field({ nullable: true })
+  login: string;
+
+  @Field({ nullable: true })
+  name: string;
+
+  @Field({ nullable: true })
   nameRegex: string;
 }
 
 @ObjectType()
 export class PartialUser extends Partial(User) {
 }
-

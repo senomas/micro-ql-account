@@ -13,15 +13,6 @@ export function Partial<TItem>(TItemClass: ClassType<TItem>) {
   return PartialClass;
 }
 
-@ArgsType()
-export class PartialArgs {
-  @Field(type => Int, { nullable: true })
-  skip: number;
-
-  @Field(type => Int, { nullable: true })
-  limit: number;
-}
-
 @ObjectType()
 export class UpdateResponse {
   @Field(type => Int, { nullable: true })
