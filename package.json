@@ -45,7 +45,6 @@
     "js-yaml": "^3.13.1",
     "jsonwebtoken": "^8.5.1",
     "key-encoder": "^2.0.2",
-    "mem": "5.1.1",
     "mongodb": "^3.3.2",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.13",
