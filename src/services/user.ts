@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { MongoModel, mongodb } from './mongodb';
+import { mongodb } from './mongodb';
 
 import crypto = require("crypto");
 

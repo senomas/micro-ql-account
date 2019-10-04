@@ -1,4 +1,4 @@
-import { Query, Resolver, Authorized, Args, Mutation, Arg } from 'type-graphql';
+import { Query, Resolver, Authorized, Mutation, Arg } from 'type-graphql';
 
 import { mongodb } from '../services/mongodb';
 import { logger } from '../services/service';

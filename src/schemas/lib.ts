@@ -1,4 +1,4 @@
-import { Field, ObjectType, ClassType, Int, ArgsType } from 'type-graphql';
+import { Field, ObjectType, ClassType, Int } from 'type-graphql';
 
 export function Partial<TItem>(TItemClass: ClassType<TItem>) {
 
