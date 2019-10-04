@@ -1,6 +1,6 @@
-import { MongoModel, mongodb } from './mongodb';
+import { mongodb } from './mongodb';
 
 export async function initRole() {
-  mongodb.models.role = new MongoModel(mongodb, "role");
-  mongodb.models.role.loadKey = (data) => ({ code: data.code });
+  const role = await mongodb.create("role");
+  role.loadKey = (data) => ({ code: data.code });
 }

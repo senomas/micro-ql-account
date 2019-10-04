@@ -1,6 +1,5 @@
 import "mocha";
 
-import crypto = require("crypto");
 import { expect } from "chai";
 import { suite, test } from "mocha-typescript";
 import { BaseTest, values } from "./base";

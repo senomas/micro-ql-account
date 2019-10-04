@@ -1,6 +1,4 @@
-import { Field, ID, ObjectType, Int } from 'type-graphql';
-
-export interface IAuthService { }
+import { Field, ID, ObjectType } from 'type-graphql';
 
 @ObjectType()
 export class Auth {

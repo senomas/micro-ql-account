@@ -72,7 +72,7 @@ type Role {
   id: ID!
   code: String!
   name: String!
-  description: String!
+  description: String
   privileges: [String!]!
 }
 
@@ -88,15 +88,17 @@ type UpdateResponse {
 }
 
 input UpdateRoleInput {
-  name: String!
+  code: String
+  name: String
   description: String
-  privileges: [String!]!
+  privileges: [String!]
 }
 
 input UpdateUserInput {
-  name: String!
+  login: String
+  name: String
   description: String
-  roles: [String!]!
+  roles: [String!]
 }
 
 type User {

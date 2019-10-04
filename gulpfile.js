@@ -40,7 +40,11 @@ async function run() {
 
 async function test() {
   await build();
-  const proc = spawn("node", ["dist/server.js"]);
+  const proc = spawn("node", ["dist/server.js"], {
+    env: {
+      TEST: true
+    }
+  });
   proc.stdout.pipe(process.stdout);
   proc.stderr.pipe(process.stderr);
   console.log(

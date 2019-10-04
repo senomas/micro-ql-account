@@ -1,16 +1,15 @@
 import { Collection, Cursor, Db, MongoClient } from "mongodb";
 import { logger } from "./service";
 
+const ENV_TEST = !!process.env.TEST;
+
 export class MongoModel {
   public db: Db;
-  public collection: Collection;
   public loadKey = (data: any): any => ({ _id: data._id });
   public loadEnhance = (data: any): any => data;
 
-  constructor(private mongodb: Mongodb, public name: string, options: any = {}) {
+  constructor(private mongodb: Mongodb, public collection: Collection) {
     this.db = mongodb.db;
-    this.collection = this.db.collection(name);
-    this.mongodb.models[name] = this;
   }
 
   public async insertOne(value, options = null) {
@@ -93,6 +92,15 @@ export class Mongodb {
         unique: true
       }
     );
+  }
+
+  public async create(name, options = null) {
+    const col = this.db.collection(name);
+    if (ENV_TEST) {
+      await col.drop();
+    }
+    const model = this.models[name] = new MongoModel(this, col);
+    return model;
   }
 }
 

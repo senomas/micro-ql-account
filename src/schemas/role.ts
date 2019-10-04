@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType, InputType } from 'type-graphql';
 import { Partial } from './lib';
+import { MaxLength, Length } from "class-validator";
 
 @ObjectType()
 export class Role {
@@ -12,7 +13,7 @@ export class Role {
   @Field()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   description?: string;
 
   @Field(type => [String])
@@ -22,12 +23,15 @@ export class Role {
 @InputType()
 export class AddRoleInput {
   @Field()
+  @Length(3, 100)
   code: string;
 
   @Field()
+  @Length(3, 100)
   name: string;
 
   @Field({ nullable: true })
+  @MaxLength(500)
   description?: string;
 
   @Field(type => [String])
@@ -36,13 +40,19 @@ export class AddRoleInput {
 
 @InputType()
 export class UpdateRoleInput {
-  @Field()
+  @Field({ nullable: true })
+  @Length(3, 100)
+  code: string;
+
+  @Field({ nullable: true })
+  @Length(3, 100)
   name: string;
 
   @Field({ nullable: true })
+  @MaxLength(500)
   description?: string;
 
-  @Field(type => [String])
+  @Field(type => [String], { nullable: true })
   privileges: string[];
 }
 

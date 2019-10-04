@@ -1,10 +1,11 @@
-import "mocha";
+import 'mocha';
+
+import { expect } from 'chai';
+import crypto from 'crypto';
 
 import chai = require("chai");
-import { expect } from "chai";
 import chaiHttp = require("chai-http");
 import fs = require("fs");
-import crypto = require("crypto");
 import yaml = require("js-yaml");
 
 chai.use(chaiHttp);

@@ -1,9 +1,10 @@
-import "mocha";
+import 'mocha';
 
-import crypto = require("crypto");
-import { expect } from "chai";
-import { suite, test } from "mocha-typescript";
-import { BaseTest, values } from "./base";
+import { expect } from 'chai';
+import crypto from 'crypto';
+import { suite, test } from 'mocha-typescript';
+
+import { BaseTest, values } from './base';
 
 @suite
 export class UserCrudTest extends BaseTest {
