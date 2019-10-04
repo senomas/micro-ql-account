@@ -15,20 +15,17 @@ export class LoginTest extends BaseTest {
     ecdh.generateKeys();
     values.ecdh = ecdh;
 
-    let res = await this.http.post("/graphql").send({
-      query: `{
-        auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-          serverKey
-        }
-      }`
-    });
-    // console.log("RES", res.status, res.request.url, res.body);
+    let res = await this.post(`{
+    auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+        serverKey
+      }
+    }`);
     let val = res.body;
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
-    expect(val, res.request.method + " " + res.request.url).to.haveOwnProperty("data");
-    expect(val.data, res.request.method + " " + res.request.url).to.haveOwnProperty("auth");
-    expect(val.data.auth, res.request.method + " " + res.request.url).to.haveOwnProperty("serverKey");
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(val, res.log).to.haveOwnProperty("data");
+    expect(val.data, res.log).to.haveOwnProperty("auth");
+    expect(val.data.auth, res.log).to.haveOwnProperty("serverKey");
     const serverKey = val.data.auth.serverKey;
 
     const secretkey = ecdh.computeSecret(
@@ -56,20 +53,17 @@ export class LoginTest extends BaseTest {
       aes.final()
     ]).toString("base64");
 
-    res = await this.http.post("/graphql").send({
-      query: `{
-        auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-          salt(xlogin: "${xlogin}")
-        }
-      }`
-    });
-    // console.log("RES", res.status, res.request.url, JSON.stringify(res.body, undefined, 2));
+    res = await this.post(`{
+      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+        salt(xlogin: "${xlogin}")
+      }
+    }`);
     val = res.body;
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
-    expect(val, res.request.method + " " + res.request.url).to.haveOwnProperty("data");
-    expect(val.data, res.request.method + " " + res.request.url).to.haveOwnProperty("auth");
-    expect(val.data.auth, res.request.method + " " + res.request.url).to.haveOwnProperty("salt");
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(val, res.log).to.haveOwnProperty("data");
+    expect(val.data, res.log).to.haveOwnProperty("auth");
+    expect(val.data.auth, res.log).to.haveOwnProperty("salt");
     const xsalt = val.data.auth.salt;
 
     const aesd = crypto.createDecipheriv("aes-256-ctr", aesKey, aesSalt);
@@ -94,74 +88,60 @@ export class LoginTest extends BaseTest {
     ]).toString("base64");
     // console.log("XHPASSWORD", xhpassword);
 
-    res = await this.http.post("/graphql").send({
-      query: `{
-        auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-          login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
-            seq token refresh
-          }
+    res = await this.post(`{
+      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+        login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
+          seq token refresh
         }
-      }`
-    });
-    // console.log("RES", res.status, res.request.url, JSON.stringify(res.body, undefined, 2));
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
     values.refresh = res.body.data.auth.login.refresh;
   }
 
   @test
   public async testRefresh() {
     const ecdh = values.ecdh;
-    const res = await this.http.post("/graphql").send({
-      query: `{
-        auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-          refresh(refresh: "${values.refresh}") {
-            seq token refresh
-          }
+    const res = await this.post(`{
+      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+        refresh(refresh: "${values.refresh}") {
+          seq token refresh
         }
-      }`
-    });
-    // console.log("RES", res.status, res.request.url, JSON.stringify(res.body, undefined, 2));
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
     values.token = res.body.data.auth.refresh.token;
   }
 
   @test
   public async testCurrent() {
-    const req = this.http.post("/graphql");
-    req.set("Authorization", `Bearer ${values.token}`);
-    const res = await req.send({
-      query: `{
-        me {
-          clientKey
-          xlogin
-          name
-          privileges
-        }
-      }`
-    });
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
+    const res = await this.post(`{
+      me {
+        clientKey
+        xlogin
+        name
+        privileges
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
   }
 
   @test
   public async testCurrentNoToken() {
-    const req = this.http.post("/graphql");
-    const res = await req.send({
-      query: `{
-        me {
-          clientKey
-          xlogin
-          name
-          privileges
-        }
-      }`
-    });
-    // console.log("RES", res.status, res.request.url, JSON.stringify(res.body, undefined, 2));
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.haveOwnProperty("errors");
-    expect(res.body.errors[0].message, res.request.method + " " + res.request.url).to.eql("Access denied! You need to be authorized to perform this action!");
+    const res = await this.post(`{
+      me {
+        clientKey
+        xlogin
+        name
+        privileges
+      }
+    }`, { token: null });
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.haveOwnProperty("errors");
+    expect(res.body.errors[0].message, res.log).to.eql("Access denied! You need to be authorized to perform this action!");
   }
 }
 

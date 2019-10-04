@@ -128,4 +128,16 @@ export class BaseTest {
     values.token = res.body.data.auth.login.token;
     values.refresh = res.body.data.auth.login.refresh;
   }
+
+  public async post(query: string, { token } = { token: values.token }) {
+    const req = this.http.post("/graphql");
+    if (token) {
+      req.set("Authorization", `Bearer ${token}`);
+    }
+    const res = await req.send({
+      query
+    });
+    res.log = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    return res;
+  }
 }
