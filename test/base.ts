@@ -2,6 +2,7 @@ import 'mocha';
 
 import { expect } from 'chai';
 import crypto from 'crypto';
+import * as bunyan from 'bunyan';
 
 import chai = require("chai");
 import chaiHttp = require("chai-http");
@@ -11,27 +12,30 @@ import yaml = require("js-yaml");
 chai.use(chaiHttp);
 
 export const values = {} as any;
-let config: any = null;
+export const config = yaml.safeLoad(fs.readFileSync("config.yaml").toString());
+if (fs.existsSync("module.yaml")) {
+  const gmods = yaml.safeLoad(fs.readFileSync("module.yaml").toString());
+  Object.entries(gmods).forEach((v: any) => {
+    if (v[1].subs) {
+      this.config.modules[v[0]] = v[1].subs;
+    }
+  });
+}
+
+export const logger = bunyan.createLogger(
+  (config.logger && config.logger.path) ? {
+    name: "test",
+    streams: [{
+      type: "rotating-file",
+      ...config.logger,
+      path: `${process.env.LOGGER_PATH || config.logger.path || "."}/test.log`,
+    }]
+  } : { name: "test" });
 
 export class BaseTest {
 
   protected http = (chai as any).request(process.env.TEST_SERVER);
   protected config: any = config;
-
-  public async before() {
-    if (!this.config) {
-      this.config = config = yaml.safeLoad(fs.readFileSync("config.yaml").toString());
-      this.config.modules = {};
-      if (fs.existsSync("module.yaml")) {
-        const gmods = yaml.safeLoad(fs.readFileSync("module.yaml").toString());
-        Object.entries(gmods).forEach((v: any) => {
-          if (v[1].subs) {
-            this.config.modules[v[0]] = v[1].subs;
-          }
-        });
-      }
-    }
-  }
 
   public async postLogin(username, password) {
     const ecdh = crypto.createECDH(this.config.auth.curves);
@@ -131,6 +135,7 @@ export class BaseTest {
     const res = await req.send({
       query
     });
+    logger.info({ res, body: res.body }, "post");
     res.log = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
     return res;
   }

@@ -106,7 +106,7 @@ export class UserCrudTest extends BaseTest {
       }
     }`);
     expect(res.status, res.log).to.eql(200);
-    expect(res.body, res.log).to.haveOwnProperty("errorsxx");
+    expect(res.body, res.log).to.haveOwnProperty("errors");
   }
 }
 
