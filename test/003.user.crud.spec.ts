@@ -11,7 +11,7 @@ export class UserCrudTest extends BaseTest {
 
   @test
   public async testLogin() {
-    this.postLogin("admin", "dodol123");
+    await this.postLogin("admin", "dodol123");
   }
 
   @test
@@ -46,6 +46,67 @@ export class UserCrudTest extends BaseTest {
     }`);
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
+  }
+
+  @test
+  public async testListUsersRoles() {
+    const res = await this.post(`{
+      roles {
+        total
+        items {
+          id
+          code
+          name
+          privileges
+        }
+      }
+      users {
+        total
+        items {
+          id
+          login
+          name
+          roles
+        }
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(res.body.data, res.log).to.haveOwnProperty("users");
+    expect(res.body.data, res.log).to.haveOwnProperty("roles");
+    expect(res.body.data.roles.items.length, res.log).to.eql(3);
+    expect(res.body.data.users.items.length, res.log).to.eql(4);
+  }
+
+  @test
+  public async testLoginJuniorStaff() {
+    await this.postLogin("citra", "dodol123");
+  }
+
+  @test
+  public async testListUsersRolesFailed() {
+    const res = await this.post(`{
+      users {
+        total
+        items {
+          id
+          login
+          name
+          roles
+        }
+      }
+      roles {
+        total
+        items {
+          id
+          code
+          name
+          privileges
+        }
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.haveOwnProperty("errorsxx");
   }
 }
 

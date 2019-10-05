@@ -22,6 +22,7 @@ export async function bootstrap() {
   const schema = await buildSchema({
     resolvers: [AuthResolver, RoleResolver, UserResolver, null],
     authChecker: customAuthChecker,
+    authMode: "null",
     emitSchemaFile: true,
     dateScalarMode: "isoDate"
   });
@@ -49,7 +50,6 @@ export async function bootstrap() {
     playground: true,
     context: ({ req }) => {
       const user = getUser(req);
-      // logger.info({ req, user }, "authentication middleware");
       return { user };
     }
   });

@@ -16,7 +16,7 @@ export class LoginTest extends BaseTest {
     values.ecdh = ecdh;
 
     let res = await this.post(`{
-    auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
         serverKey
       }
     }`);

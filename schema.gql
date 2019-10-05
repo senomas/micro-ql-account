@@ -62,10 +62,10 @@ type PartialUser {
 }
 
 type Query {
-  users(filter: FilterUserInput, limit: Float, skip: Float): PartialUser!
-  roles(filter: FilterRoleInput, limit: Float, skip: Float): PartialRole!
+  users(filter: FilterUserInput, limit: Float, skip: Float): PartialUser
+  roles(filter: FilterRoleInput, limit: Float, skip: Float): PartialRole
   auth(clientKey: String!): Auth!
-  me: UserToken!
+  me: UserToken
 }
 
 type Role {

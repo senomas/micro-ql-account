@@ -15,7 +15,9 @@ async function build() {
 }
 
 async function copyData() {
-  return src("src/data/*.{json,yaml}").pipe(dest("dist/data"));
+  await new Promise(resolve => {
+    src("src/data/*.{json,yaml}").pipe(dest("dist/data")).on("end", resolve);
+  });
 }
 
 async function dockerUp() {
@@ -31,22 +33,32 @@ async function dockerDown() {
 }
 
 async function run() {
-  await build();
   await dockerUp();
+  await build();
   await shell.exec("node dist/server.js", {
+    env: {
+      NODE_ENV: "development",
+      PORT: 5000
+    },
     async: false
   });
 }
 
 async function test() {
+  await shell.exec("rm -rf log dist", {
+    async: false
+  });
   await build();
+  await dockerUp();
   const proc = spawn("node", ["dist/server.js"], {
     env: {
-      TEST: true
+      NODE_ENV: "test",
+      PORT: 5000
     }
   });
   proc.stdout.pipe(process.stdout);
   proc.stderr.pipe(process.stderr);
+  // await new Promise(resolve => setTimeout(resolve, 3000));
   console.log(
     `npx mocha -r ts-node/register ${
     args.bail ? "-b" : ""
@@ -59,9 +71,8 @@ async function test() {
     {
       env: {
         PATH: process.env.PATH,
-        NODE_ENV: "development",
-        TEST_SERVER: `http://localhost:4000`,
-        TEST: "true"
+        NODE_ENV: "test",
+        TEST_SERVER: `http://localhost:5000`
       },
       async: false
     }

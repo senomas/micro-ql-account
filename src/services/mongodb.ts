@@ -1,7 +1,7 @@
 import { Collection, Cursor, Db, MongoClient } from "mongodb";
 import { logger } from "./service";
 
-const ENV_TEST = !!process.env.TEST;
+const NODE_ENV = (process.env.NODE_ENV || "production").toLowerCase();
 
 export class MongoModel {
   public db: Db;
@@ -40,16 +40,17 @@ export class MongoModel {
     if (Array.isArray(data)) {
       const res = [];
       for (const v of data) {
-        res.push(this.load(v));
+        res.push(await this.load(v));
       }
       return res;
     }
-    return this.collection.updateOne(
+    const res = await this.collection.updateOne(
       await this.loadKey(data), {
       $set: await this.loadEnhance(data)
     }, {
       upsert: true
     });
+    return res;
   }
 }
 
@@ -96,7 +97,7 @@ export class Mongodb {
 
   public async create(name, options = null) {
     const col = this.db.collection(name);
-    if (ENV_TEST) {
+    if (NODE_ENV === "development" || NODE_ENV === "test") {
       await col.drop();
     }
     const model = this.models[name] = new MongoModel(this, col);

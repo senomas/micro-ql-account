@@ -9,7 +9,7 @@ export class RoleCrudTest extends BaseTest {
 
   @test
   public async testLogin() {
-    this.postLogin("admin", "dodol123");
+    await this.postLogin("admin", "dodol123");
   }
 
   @test
@@ -61,7 +61,7 @@ export class RoleCrudTest extends BaseTest {
     }`);
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
-    expect(res.body.data.roles.total, res.log).to.eql(1);
+    expect(res.body.data.roles.total, res.log).to.eql(2);
   }
 
   @test

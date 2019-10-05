@@ -18,7 +18,7 @@ export function getUser(req) {
       logger.error({ token, err }, "invalid token header");
       throw new AuthenticationError("InvalidTokenHeader");
     }
-    logger.info({ token, header, url: req.url }, "jwt authentication");
+    logger.info({ token, header }, "jwt authentication");
     const keyid = header.kid;
     if (!(config.keys[keyid] && config.keys[keyid].key)) {
       throw new AuthenticationError("UnknownKeyID");

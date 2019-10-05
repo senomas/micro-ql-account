@@ -28,5 +28,14 @@
       "role.read",
       "role.update"
     ]
+  },
+  {
+    "code": "junior-staff",
+    "name": "Junior Staff",
+    "description": "Junior Staff",
+    "privileges": [
+      "user.read",
+      "user.update"
+    ]
   }
 ]

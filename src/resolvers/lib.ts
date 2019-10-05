@@ -48,7 +48,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
       return query;
     }
 
-    @Query(returns => opt.partialTypeCls, { name: `${opt.suffixPlurals}` })
+    @Query(returns => opt.partialTypeCls, { nullable: true, name: `${opt.suffixPlurals}` })
     @Authorized([`${opt.suffix}.read`])
     async find(
       @Arg("skip", { nullable: true }) skip: number,

@@ -38,19 +38,17 @@ export class BaseTest {
     ecdh.generateKeys();
     values.ecdh = ecdh;
 
-    let res = await this.http.post("/graphql").send({
-      query: `{
-        auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-          serverKey
-        }
-      }`
-    });
+    let res = await this.post(`{
+      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+        serverKey
+      }
+    }`, { token: null });
     let val = res.body;
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
-    expect(val, res.request.method + " " + res.request.url).to.haveOwnProperty("data");
-    expect(val.data, res.request.method + " " + res.request.url).to.haveOwnProperty("auth");
-    expect(val.data.auth, res.request.method + " " + res.request.url).to.haveOwnProperty("serverKey");
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(val, res.log).to.haveOwnProperty("data");
+    expect(val.data, res.log).to.haveOwnProperty("auth");
+    expect(val.data.auth, res.log).to.haveOwnProperty("serverKey");
     const serverKey = val.data.auth.serverKey;
 
     const secretkey = ecdh.computeSecret(
@@ -78,19 +76,17 @@ export class BaseTest {
       aes.final()
     ]).toString("base64");
 
-    res = await this.http.post("/graphql").send({
-      query: `{
-        auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-          salt(xlogin: "${xlogin}")
-        }
-      }`
-    });
+    res = await this.post(`{
+      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+        salt(xlogin: "${xlogin}")
+      }
+    }`, { token: null });
     val = res.body;
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
-    expect(val, res.request.method + " " + res.request.url).to.haveOwnProperty("data");
-    expect(val.data, res.request.method + " " + res.request.url).to.haveOwnProperty("auth");
-    expect(val.data.auth, res.request.method + " " + res.request.url).to.haveOwnProperty("salt");
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(val, res.log).to.haveOwnProperty("data");
+    expect(val.data, res.log).to.haveOwnProperty("auth");
+    expect(val.data.auth, res.log).to.haveOwnProperty("salt");
     const xsalt = val.data.auth.salt;
 
     const aesd = crypto.createDecipheriv("aes-256-ctr", aesKey, aesSalt);
@@ -113,17 +109,15 @@ export class BaseTest {
       aes.final()
     ]).toString("base64");
 
-    res = await this.http.post("/graphql").send({
-      query: `{
-        auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-          login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
-            seq token refresh
-          }
+    res = await this.post(`{
+      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
+        login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
+          seq token refresh
         }
-      }`
-    });
-    expect(res.status, res.request.method + " " + res.request.url).to.eql(200);
-    expect(res.body, res.request.method + " " + res.request.url).to.not.haveOwnProperty("errors");
+      }
+    }`, { token: null });
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
     values.seq = parseInt(res.body.data.auth.login.seq, 10);
     values.token = res.body.data.auth.login.token;
     values.refresh = res.body.data.auth.login.refresh;

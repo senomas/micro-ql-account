@@ -1,11 +1,11 @@
 export = async ({ mongodb }) => {
   const db = mongodb.db
   const role = db.collection("role");
-  role.createIndex(
+  await role.createIndex(
     { code: 1 },
     { unique: true }
   );
-  role.createIndex(
+  await role.createIndex(
     { name: 1 },
     { unique: true }
   );

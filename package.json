@@ -6,7 +6,7 @@
   "author": "denmaseno <agus@senomas.com>",
   "license": "MIT",
   "scripts": {
-    "build": "npx tsc -p . && npx gulp copyData",
+    "build": "npx gulp build",
     "start": "yarn build && node dist/src/server.js",
     "test": "npx gulp test",
     "dev": "nodemon"

@@ -11,7 +11,7 @@ export class AuthResolver {
     return new AuthService(clientKey);
   }
 
-  @Query(returns => UserToken)
+  @Query(returns => UserToken, { nullable: true })
   @Authorized([])
   async me(@Ctx() ctx): Promise<UserToken> {
     logger.info({ ctx }, "auth service ctx");
