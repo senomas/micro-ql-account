@@ -1,0 +1,80 @@
+logger:
+  period: 1d
+  count: 3
+  path: log
+auth:
+  secret: thisisverysecure
+  salt: d3nm4s3n0
+  recaptcha:
+    sitekey: 6LfO_6kUAAAAAKortjfbeTZXSaUdwbc1PCiBbL58
+    secret: 6LfO_6kUAAAAANk-EKZqM4yyDQqxwjwS2Cc9p4dV
+  curves: secp256k1
+  aesKey:
+    iterations: 3191
+    hashBytes: 32
+  aesSalt:
+    iterations: 3297
+    hashBytes: 16
+  loginExpiry: 120
+  sessionExpiry: 20
+  singleSession: true
+  tokenExpiry: 10
+  resourceExpiry: 86400
+  tokenRefreshExpiry: 86400
+  mailTokenExpiry: 86400
+  registerValidationExpiry: 3600
+  loginFailed:
+    captcha: 2
+    temporaryBlock: 2
+    temporaryBlockExpiry: 600
+  pbkdf2:
+    iterations: 3573
+    hashBytes: 64
+  pbkdf2App:
+    iterations: 7473
+    hashBytes: 64
+  agen:
+    allowedStatus:
+      - ACT
+      - ATP
+cache:
+  - master: 300
+ipBlock: 300000
+api:
+  protocol: http
+  host: localhost
+  port: 4000
+redis:
+  host: localhost
+  port: 4081
+mongodb:
+  host: localhost
+  port: 4082
+  user: admin
+  password: dodol123
+
+keys:
+  auth:
+    key: |
+      -----BEGIN PUBLIC KEY-----
+      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO5gl9qu1vfftugBe3j5fJetJUhbV
+      4GFtYCuLVvpGX44dgjmjjKQ6fAAiYagdQlo5FAlh4Mp3ua6kFk2G15tywA==
+      -----END PUBLIC KEY-----
+    pkey: |
+      -----BEGIN EC PRIVATE KEY-----
+      MHcCAQEEIOTTmjPnVkVphJ/YGgBynBBuBdhPM1grwX3b+eFpS3fAoAoGCCqGSM49
+      AwEHoUQDQgAEO5gl9qu1vfftugBe3j5fJetJUhbV4GFtYCuLVvpGX44dgjmjjKQ6
+      fAAiYagdQlo5FAlh4Mp3ua6kFk2G15tywA==
+      -----END EC PRIVATE KEY-----
+  account:
+    key: |
+      -----BEGIN PUBLIC KEY-----
+      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEP9Xj+RfjpBxjmURMLozwuD5BhG8y
+      zdh7lwTUT0dkNLZuWbma+JLNBh8H/xVBx7Znu/aTKIICq10yNL0vHSVgEg==
+      -----END PUBLIC KEY-----
+    pkey: |
+      -----BEGIN EC PRIVATE KEY-----
+      MHcCAQEEILMJRGTXYxO2w25MQ/VLFEvFP6e2yaeHMCx9EWNz5pTBoAoGCCqGSM49
+      AwEHoUQDQgAEP9Xj+RfjpBxjmURMLozwuD5BhG8yzdh7lwTUT0dkNLZuWbma+JLN
+      Bh8H/xVBx7Znu/aTKIICq10yNL0vHSVgEg==
+      -----END EC PRIVATE KEY-----

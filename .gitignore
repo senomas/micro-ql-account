@@ -14,7 +14,6 @@ src/routes.ts
 src/.gulp*
 tsoa.json
 swagger.yaml
-config.yaml
 job.json
 gulp-*
 config.local.yaml
