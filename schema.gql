@@ -24,6 +24,19 @@ type Auth {
   refresh(refresh: String!): Token!
 }
 
+type Commit {
+  hash: String!
+  abbrevHash: String!
+  subject: String!
+  authorName: String!
+  authorDate: DateTime!
+}
+
+"""
+The javascript `Date` as string. Type represents date and time as the ISO Date string.
+"""
+scalar DateTime
+
 type DeleteResponse {
   deleted: Int!
 }
@@ -65,6 +78,7 @@ type Query {
   users(filter: FilterUserInput, limit: Float, skip: Float): PartialUser
   roles(filter: FilterRoleInput, limit: Float, skip: Float): PartialRole
   auth(clientKey: String!): Auth!
+  serverInfo: ServerInfo!
   me: UserToken
 }
 
@@ -74,6 +88,13 @@ type Role {
   name: String!
   description: String
   privileges: [String!]!
+}
+
+type ServerInfo {
+  host: String!
+  time: DateTime!
+  buildTime: DateTime!
+  commits: [Commit!]!
 }
 
 type Token {

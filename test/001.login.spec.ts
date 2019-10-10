@@ -10,6 +10,26 @@ import { BaseTest, values } from './base';
 export class LoginTest extends BaseTest {
 
   @test
+  public async serverInfo() {
+    let res = await this.post(`{
+      accountInfo {
+        host
+        time,
+        buildTime
+        commits {
+          hash
+          abbrevHash
+          subject
+          authorName
+          authorDate
+        }
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+  }
+
+  @test
   public async testLogin() {
     const ecdh = crypto.createECDH(this.config.auth.curves);
     ecdh.generateKeys();

@@ -2,6 +2,8 @@ const { dest, src } = require("gulp");
 const shell = require("shelljs");
 const { spawn } = require('child_process');
 const args = require("yargs").argv;
+const gitlog = require('gitlog');
+const fs = require("fs");
 
 async function tsc() {
   await shell.exec("npx tsc -p .", {
@@ -12,6 +14,17 @@ async function tsc() {
 async function build() {
   await tsc();
   await copyData();
+  const commits = gitlog({
+    repo: ".", number: 10,
+    fields:
+      ["hash"
+        , "abbrevHash"
+        , "subject"
+        , "authorName"
+        , "authorDate"
+      ]
+  });
+  fs.writeFileSync("dist/build.json", JSON.stringify({ buildTime: new Date(), commits }));
 }
 
 async function copyData() {

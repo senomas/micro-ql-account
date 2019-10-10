@@ -7,6 +7,40 @@ export class Auth {
 }
 
 @ObjectType()
+export class Commit {
+  @Field()
+  hash: String;
+
+  @Field()
+  abbrevHash: String;
+
+  @Field()
+  subject: String;
+
+  @Field()
+  authorName: String;
+
+  @Field()
+  authorDate: Date;
+}
+
+@ObjectType()
+export class ServerInfo {
+  @Field()
+  host: string;
+
+  @Field()
+  time: Date;
+
+  @Field()
+  buildTime: Date;
+
+  @Field(type => [Commit])
+  commits: Commit[];
+}
+
+
+@ObjectType()
 export class Token {
   @Field(type => String)
   seq: number;

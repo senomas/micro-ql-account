@@ -1,6 +1,7 @@
 import { Arg, FieldResolver, Query, Resolver, Root, Ctx, Authorized } from 'type-graphql';
-
-import { Auth, Token, UserToken } from '../schemas/auth';
+import * as os from "os";
+import * as fs from "fs";
+import { Auth, Token, UserToken, ServerInfo } from '../schemas/auth';
 import { AuthService } from '../services/auth';
 import { logger } from '../services/service';
 
@@ -9,6 +10,21 @@ export class AuthResolver {
   @Query(returns => Auth)
   auth(@Arg("clientKey") clientKey: string): AuthService {
     return new AuthService(clientKey);
+  }
+
+  @Query(returns => ServerInfo)
+  accountInfo(): ServerInfo {
+    const data = JSON.parse(fs.readFileSync("./dist/build.json").toString());
+    logger.info({ data }, "build.json");
+    return {
+      host: os.hostname(),
+      time: new Date(),
+      buildTime: new Date(data.buildTime),
+      commits: data.commits ? data.commits.map(v => ({
+        ...v,
+        authorDate: new Date(v.authorDate)
+      })) : null
+    }
   }
 
   @Query(returns => UserToken, { nullable: true })
