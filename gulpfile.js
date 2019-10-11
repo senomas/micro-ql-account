@@ -1,8 +1,8 @@
 const { dest, src } = require("gulp");
 const shell = require("shelljs");
-const { spawn } = require('child_process');
+const { spawn } = require("child_process");
 const args = require("yargs").argv;
-const gitlog = require('gitlog');
+const gitlog = require("gitlog");
 const fs = require("fs");
 
 async function tsc() {
@@ -15,21 +15,21 @@ async function build() {
   await tsc();
   await copyData();
   const commits = gitlog({
-    repo: ".", number: 10,
-    fields:
-      ["hash"
-        , "abbrevHash"
-        , "subject"
-        , "authorName"
-        , "authorDate"
-      ]
+    repo: ".",
+    number: 10,
+    fields: ["hash", "abbrevHash", "subject", "authorName", "authorDate"]
   });
-  fs.writeFileSync("dist/build.json", JSON.stringify({ buildTime: new Date(), commits }));
+  fs.writeFileSync(
+    "dist/build.json",
+    JSON.stringify({ buildTime: new Date(), commits })
+  );
 }
 
 async function copyData() {
   await new Promise(resolve => {
-    src("src/data/*.{json,yaml}").pipe(dest("dist/data")).on("end", resolve);
+    src("src/data/*.{json,yaml}")
+      .pipe(dest("dist/data"))
+      .on("end", resolve);
   });
 }
 
@@ -48,8 +48,10 @@ async function dockerDown() {
 async function run() {
   await dockerUp();
   await build();
+  console.log("PATH", process.env.PATH);
   await shell.exec("node dist/server.js", {
     env: {
+      PATH: process.env.PATH,
       NODE_ENV: "development",
       PORT: 5000
     },
@@ -65,6 +67,7 @@ async function test() {
   await dockerUp();
   const proc = spawn("node", ["dist/server.js"], {
     env: {
+      PATH: process.env.PATH,
       NODE_ENV: "test",
       PORT: 5000
     }
@@ -74,12 +77,12 @@ async function test() {
   // await new Promise(resolve => setTimeout(resolve, 3000));
   console.log(
     `npx mocha -r ts-node/register ${
-    args.bail ? "-b" : ""
+      args.bail ? "-b" : ""
     } --color -t 90000 test/**/*${args.mod ? `${args.mod}*` : ""}.spec.ts`
   );
   shell.exec(
     `npx mocha -r ts-node/register  ${
-    args.bail ? "-b" : ""
+      args.bail ? "-b" : ""
     } --color -t 90000 test/**/*${args.mod ? `${args.mod}*` : ""}.spec.ts`,
     {
       env: {
@@ -101,4 +104,4 @@ module.exports = {
   dockerDown,
   run,
   test
-}
+};

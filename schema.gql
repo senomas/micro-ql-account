@@ -78,7 +78,7 @@ type Query {
   users(filter: FilterUserInput, limit: Float, skip: Float): PartialUser
   roles(filter: FilterRoleInput, limit: Float, skip: Float): PartialRole
   auth(clientKey: String!): Auth!
-  serverInfo: ServerInfo!
+  accountInfo: ServerInfo!
   me: UserToken
 }
 

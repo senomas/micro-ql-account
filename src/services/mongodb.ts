@@ -98,7 +98,15 @@ export class Mongodb {
   public async create(name, options = null) {
     const col = this.db.collection(name);
     if (NODE_ENV === "development" || NODE_ENV === "test") {
-      await col.drop();
+      try {
+        await col.drop();
+      } catch (err) {
+        if (err.message && err.message.indexOf("ns not found") >= 0) {
+          // skip
+        } else {
+          throw err;
+        }
+      }
     }
     const model = this.models[name] = new MongoModel(this, col);
     return model;

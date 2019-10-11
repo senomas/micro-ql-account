@@ -43,13 +43,13 @@ ipBlock: 300000
 api:
   protocol: http
   host: localhost
-  port: 4000
+  port: 5000
 redis:
   host: localhost
-  port: 4081
+  port: 5006
 mongodb:
   host: localhost
-  port: 4082
+  port: 5008
   user: admin
   password: dodol123
 

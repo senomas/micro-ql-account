@@ -1,8 +1,8 @@
-import 'mocha';
+import "mocha";
 
-import { expect } from 'chai';
-import crypto from 'crypto';
-import * as bunyan from 'bunyan';
+import { expect } from "chai";
+import crypto from "crypto";
+import * as bunyan from "bunyan";
 
 import chai = require("chai");
 import chaiHttp = require("chai-http");
@@ -22,18 +22,31 @@ if (fs.existsSync("module.yaml")) {
   });
 }
 
+if (config.logger && config.logger.path) {
+  const dir = process.env.LOGGER_PATH || config.logger.path || ".";
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
+}
+
 export const logger = bunyan.createLogger(
-  (config.logger && config.logger.path) ? {
-    name: "test",
-    streams: [{
-      type: "rotating-file",
-      ...config.logger,
-      path: `${process.env.LOGGER_PATH || config.logger.path || "."}/test.log`,
-    }]
-  } : { name: "test" });
+  config.logger && config.logger.path
+    ? {
+        name: "test",
+        streams: [
+          {
+            type: "rotating-file",
+            ...config.logger,
+            path: `${process.env.LOGGER_PATH ||
+              config.logger.path ||
+              "."}/test.log`
+          }
+        ]
+      }
+    : { name: "test" }
+);
 
 export class BaseTest {
-
   protected http = (chai as any).request(process.env.TEST_SERVER);
   protected config: any = config;
 
@@ -42,11 +55,14 @@ export class BaseTest {
     ecdh.generateKeys();
     values.ecdh = ecdh;
 
-    let res = await this.post(`{
+    let res = await this.post(
+      `{
       auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
         serverKey
       }
-    }`, { token: null });
+    }`,
+      { token: null }
+    );
     let val = res.body;
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
@@ -55,36 +71,35 @@ export class BaseTest {
     expect(val.data.auth, res.log).to.haveOwnProperty("serverKey");
     const serverKey = val.data.auth.serverKey;
 
-    const secretkey = ecdh.computeSecret(
-      Buffer.from(serverKey, "base64")
+    const secretkey = ecdh.computeSecret(Buffer.from(serverKey, "base64"));
+    const aesKey = crypto.pbkdf2Sync(
+      secretkey,
+      this.config.auth.salt,
+      this.config.auth.aesKey.iterations,
+      this.config.auth.aesKey.hashBytes,
+      "sha512"
     );
-    const aesKey = crypto
-      .pbkdf2Sync(
-        secretkey,
-        this.config.auth.salt,
-        this.config.auth.aesKey.iterations,
-        this.config.auth.aesKey.hashBytes,
-        "sha512"
-      );
-    const aesSalt = crypto
-      .pbkdf2Sync(
-        ecdh.getPublicKey(),
-        this.config.auth.salt,
-        this.config.auth.aesSalt.iterations,
-        this.config.auth.aesSalt.hashBytes,
-        "sha512"
-      );
+    const aesSalt = crypto.pbkdf2Sync(
+      ecdh.getPublicKey(),
+      this.config.auth.salt,
+      this.config.auth.aesSalt.iterations,
+      this.config.auth.aesSalt.hashBytes,
+      "sha512"
+    );
     let aes = crypto.createCipheriv("aes-256-ctr", aesKey, aesSalt);
     const xlogin = Buffer.concat([
       aes.update(Buffer.from(username, "utf8")),
       aes.final()
     ]).toString("base64");
 
-    res = await this.post(`{
+    res = await this.post(
+      `{
       auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
         salt(xlogin: "${xlogin}")
       }
-    }`, { token: null });
+    }`,
+      { token: null }
+    );
     val = res.body;
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
@@ -113,13 +128,16 @@ export class BaseTest {
       aes.final()
     ]).toString("base64");
 
-    res = await this.post(`{
+    res = await this.post(
+      `{
       auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
         login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
           seq token refresh
         }
       }
-    }`, { token: null });
+    }`,
+      { token: null }
+    );
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
     values.seq = parseInt(res.body.data.auth.login.seq, 10);
@@ -136,7 +154,11 @@ export class BaseTest {
       query
     });
     logger.info({ res, body: res.body }, "post");
-    res.log = `${res.request.method} ${res.request.url} ${JSON.stringify(res.body, undefined, 2)}`;
+    res.log = `${res.request.method} ${res.request.url} ${JSON.stringify(
+      res.body,
+      undefined,
+      2
+    )}`;
     return res;
   }
 }
