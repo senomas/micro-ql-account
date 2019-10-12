@@ -130,8 +130,8 @@ type User {
 }
 
 type UserToken {
-  clientKey: ID!
-  xlogin: String!
-  name: String!
-  privileges: [String!]!
+  clientKey: ID
+  xlogin: String
+  name: String
+  privileges: [String!]
 }

@@ -48,7 +48,6 @@ async function dockerDown() {
 async function run() {
   await dockerUp();
   await build();
-  console.log("PATH", process.env.PATH);
   await shell.exec("node dist/server.js", {
     env: {
       PATH: process.env.PATH,

@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from "type-graphql";
 
 @ObjectType()
 export class Auth {
@@ -39,7 +39,6 @@ export class ServerInfo {
   commits: Commit[];
 }
 
-
 @ObjectType()
 export class Token {
   @Field(type => String)
@@ -54,15 +53,15 @@ export class Token {
 
 @ObjectType()
 export class UserToken {
-  @Field(type => ID)
+  @Field(type => ID, { nullable: true })
   clientKey: string;
 
-  @Field(type => String)
+  @Field(type => String, { nullable: true })
   xlogin: string;
 
-  @Field(type => String)
+  @Field(type => String, { nullable: true })
   name: string;
 
-  @Field(type => [String])
+  @Field(type => [String], { nullable: true })
   privileges: string[];
 }

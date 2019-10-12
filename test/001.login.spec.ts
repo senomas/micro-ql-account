@@ -92,7 +92,6 @@ export class LoginTest extends BaseTest {
       aesd.final()
     ]).toString("utf8");
 
-    aes = crypto.createCipheriv("aes-256-ctr", aesKey, aesSalt);
     const hpassword = crypto.pbkdf2Sync(
       "dodol123",
       Buffer.from(salt, "base64"),
@@ -102,6 +101,7 @@ export class LoginTest extends BaseTest {
     );
     // console.log("HPASSWORD", hpassword.toString("base64"));
 
+    aes = crypto.createCipheriv("aes-256-ctr", aesKey, aesSalt);
     const xhpassword = Buffer.concat([
       aes.update(hpassword),
       aes.final()

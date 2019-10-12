@@ -28,7 +28,6 @@ export class AuthResolver {
   }
 
   @Query(returns => UserToken, { nullable: true })
-  @Authorized([])
   async me(@Ctx() ctx): Promise<UserToken> {
     logger.info({ ctx }, "auth service ctx");
     if (ctx.user) {
@@ -39,7 +38,12 @@ export class AuthResolver {
         privileges: ctx.user.p
       };
     }
-    return undefined;
+    return {
+      clientKey: null,
+      xlogin: null,
+      name: null,
+      privileges: []
+    };
   }
 
   @FieldResolver(of => String)
