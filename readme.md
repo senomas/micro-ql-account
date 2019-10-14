@@ -1,3 +1,22 @@
+## REQUIREMENTS
+- node 12
+- docker
+
+## INITIAL
+```
+yarn --frozen-lockfile
+```
+
+## TEST
+```
+npx gulp test
+```
+
+## RUN
+```
+npx gulp run
+```
+
 ## CREATE PROJECT
 
 ```

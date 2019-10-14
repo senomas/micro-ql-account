@@ -6,7 +6,7 @@ const gitlog = require("gitlog");
 const fs = require("fs");
 
 async function tsc() {
-  await shell.exec("npx tsc -p .", {
+  await shell.exec("npx tsc -p tsconfig.build.json", {
     async: false
   });
 }

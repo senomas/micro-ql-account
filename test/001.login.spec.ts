@@ -160,8 +160,9 @@ export class LoginTest extends BaseTest {
       }
     }`, { token: null });
     expect(res.status, res.log).to.eql(200);
-    expect(res.body, res.log).to.haveOwnProperty("errors");
-    expect(res.body.errors[0].message, res.log).to.eql("Access denied! You need to be authorized to perform this action!");
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(res.body.data.me.clientKey, res.log).to.eql(null);
+    expect(res.body.data.me.privileges, res.log).to.eql([]);
   }
 }
 
