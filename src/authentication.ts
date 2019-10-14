@@ -4,9 +4,9 @@ import { config } from "./config";
 import { AuthenticationError } from "apollo-server-core";
 
 export function getUser(req) {
-  let token = req.headers['x-access-token'] || req.headers['authorization'];
+  let token = req.headers["x-access-token"] || req.headers["authorization"];
   if (token) {
-    if (token.startsWith('Bearer ')) {
+    if (token.startsWith("Bearer ")) {
       token = token.slice(7, token.length);
     }
     let header;
@@ -27,8 +27,15 @@ export function getUser(req) {
       return jwt.verify(token, config.keys[keyid].key);
     } catch (err) {
       logger.error({ header, token, err }, "invalid token");
-      throw new AuthenticationError("InvalidToken");
+      if (err && err.name === "TokenExpiredError") {
+        return {
+          name: "dodol",
+          error: "TokenExpired"
+        };
+      } else {
+        throw new AuthenticationError("InvalidToken");
+      }
     }
   }
   return null;
-};
+}

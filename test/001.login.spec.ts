@@ -164,5 +164,20 @@ export class LoginTest extends BaseTest {
     expect(res.body.data.me.clientKey, res.log).to.eql(null);
     expect(res.body.data.me.privileges, res.log).to.eql([]);
   }
+
+  @test
+  public async testExpiredToken() {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    const res = await this.post(`{
+      me {
+        clientKey
+        xlogin
+        name
+        privileges
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.haveOwnProperty("errors");
+  }
 }
 

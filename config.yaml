@@ -5,9 +5,6 @@ logger:
 auth:
   secret: thisisverysecure
   salt: d3nm4s3n0
-  recaptcha:
-    sitekey: 6LfO_6kUAAAAAKortjfbeTZXSaUdwbc1PCiBbL58
-    secret: 6LfO_6kUAAAAANk-EKZqM4yyDQqxwjwS2Cc9p4dV
   curves: secp256k1
   aesKey:
     iterations: 3191
@@ -18,28 +15,14 @@ auth:
   loginExpiry: 120
   sessionExpiry: 20
   singleSession: true
-  tokenExpiry: 10
-  resourceExpiry: 86400
+  tokenExpiry: 5
   tokenRefreshExpiry: 86400
-  mailTokenExpiry: 86400
-  registerValidationExpiry: 3600
-  loginFailed:
-    captcha: 2
-    temporaryBlock: 2
-    temporaryBlockExpiry: 600
   pbkdf2:
     iterations: 3573
     hashBytes: 64
   pbkdf2App:
     iterations: 7473
     hashBytes: 64
-  agen:
-    allowedStatus:
-      - ACT
-      - ATP
-cache:
-  - master: 300
-ipBlock: 300000
 api:
   protocol: http
   host: localhost
