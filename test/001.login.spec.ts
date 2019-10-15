@@ -159,7 +159,7 @@ export class LoginTest extends BaseTest {
     expect(res.body.data.me.privileges, res.log).to.eql([]);
   }
 
-  @test
+  // @test
   public async testExpiredToken() {
     await new Promise(resolve => setTimeout(resolve, 2100));
     const res = await this.post(`{
