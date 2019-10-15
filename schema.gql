@@ -104,9 +104,9 @@ type PartialUser {
 }
 
 type Query {
-  movies(filter: FilterMovieInput, limit: Float, skip: Float): PartialMovie
-  users(filter: FilterUserInput, limit: Float, skip: Float): PartialUser
-  roles(filter: FilterRoleInput, limit: Float, skip: Float): PartialRole
+  movies(filter: FilterMovieInput, limit: Int, skip: Int): PartialMovie
+  users(filter: FilterUserInput, limit: Int, skip: Int): PartialUser
+  roles(filter: FilterRoleInput, limit: Int, skip: Int): PartialRole
   auth(clientKey: String!): Auth!
   logout: Boolean!
   accountInfo: ServerInfo!

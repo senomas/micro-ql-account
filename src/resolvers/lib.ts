@@ -1,4 +1,4 @@
-import { Query, Resolver, Authorized, Mutation, Arg } from 'type-graphql';
+import { Query, Resolver, Authorized, Mutation, Arg, Int } from 'type-graphql';
 
 import { mongodb } from '../services/mongodb';
 import { logger } from '../services/service';
@@ -51,8 +51,8 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
     @Query(returns => opt.partialTypeCls, { nullable: true, name: `${opt.suffixPlurals}` })
     @Authorized([`${opt.suffix}.read`])
     async find(
-      @Arg("skip", { nullable: true }) skip: number,
-      @Arg("limit", { nullable: true }) limit: number,
+      @Arg("skip", of => Int, { nullable: true }) skip: number,
+      @Arg("limit", of => Int, { nullable: true }) limit: number,
       @Arg("filter", of => opt.filterInput, { nullable: true }) filter
     ) {
       const query = this.query(filter);
