@@ -46,13 +46,13 @@ export class Token {
 
   @Field(type => String)
   token: string;
-
-  @Field(type => String)
-  refresh: string;
 }
 
 @ObjectType()
 export class UserToken {
+  @Field(type => Date, { nullable: true })
+  time: Date;
+
   @Field(type => ID, { nullable: true })
   clientKey: string;
 
@@ -64,4 +64,7 @@ export class UserToken {
 
   @Field(type => [String], { nullable: true })
   privileges: string[];
+
+  @Field(type => Token, { nullable: true })
+  token: Token;
 }

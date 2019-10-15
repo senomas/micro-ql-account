@@ -13,10 +13,12 @@ auth:
     iterations: 3297
     hashBytes: 16
   loginExpiry: 120
-  sessionExpiry: 20
-  singleSession: true
+  # singleSession: true
+  # tokenExpiry: 1
+  # sessionExpiry: 2
+  singleSession: false
   tokenExpiry: 5
-  tokenRefreshExpiry: 86400
+  sessionExpiry: 900
   pbkdf2:
     iterations: 3573
     hashBytes: 64

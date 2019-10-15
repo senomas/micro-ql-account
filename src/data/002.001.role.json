@@ -11,7 +11,11 @@
       "role.create",
       "role.read",
       "role.update",
-      "role.delete"
+      "role.delete",
+      "movie.create",
+      "movie.read",
+      "movie.update",
+      "movie.delete"
     ]
   },
   {

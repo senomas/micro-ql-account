@@ -4,21 +4,29 @@ import {
   Query,
   Resolver,
   Root,
-  Ctx,
-  Authorized
+  Ctx
 } from "type-graphql";
 import * as os from "os";
 import * as fs from "fs";
 import { Auth, Token, UserToken, ServerInfo } from "../schemas/auth";
 import { AuthService } from "../services/auth";
 import { logger } from "../services/service";
-import { AuthenticationError, ApolloError } from "apollo-server-core";
 
 @Resolver(of => Auth)
 export class AuthResolver {
   @Query(returns => Auth)
   auth(@Arg("clientKey") clientKey: string): AuthService {
     return new AuthService(clientKey);
+  }
+
+  @Query(returns => Boolean)
+  async logout(@Ctx() ctx): Promise<Boolean> {
+    logger.info({ ctx }, "logout")
+    const svc = new AuthService(ctx.user.ck);
+    return await svc.logout(ctx.user.xl, {
+      clientIP: ctx.remoteAddress,
+      userAgent: ctx.headers["user-agent"]
+    });
   }
 
   @Query(returns => ServerInfo)
@@ -31,59 +39,55 @@ export class AuthResolver {
       buildTime: new Date(data.buildTime),
       commits: data.commits
         ? data.commits.map(v => ({
-            ...v,
-            authorDate: new Date(v.authorDate)
-          }))
+          ...v,
+          authorDate: new Date(v.authorDate)
+        }))
         : null
     };
   }
 
   @Query(returns => UserToken, { nullable: true })
-  async me(@Ctx() ctx): Promise<UserToken> {
-    logger.info({ ctx }, "auth service ctx");
+  async me(@Ctx() ctx, @Arg("ts", { nullable: true }) ts: string): Promise<UserToken> {
+    logger.info({ ctx, ts }, "me")
     if (ctx.user) {
-      if (ctx.user.error) {
-        throw new ApolloError(ctx.user.error, ctx.user.error, {
-          value: ctx.user
-        });
-      }
       return {
+        time: new Date(),
         clientKey: ctx.user.ck,
         xlogin: ctx.user.xl,
         name: ctx.user.n,
-        privileges: ctx.user.p
+        privileges: ctx.user.p,
+        token: ctx.user.token
       };
     }
     return {
+      time: new Date(),
       clientKey: null,
       xlogin: null,
       name: null,
-      privileges: []
+      privileges: [],
+      token: null
     };
   }
 
   @FieldResolver(of => String)
   async salt(
-    @Root() ctx: AuthService,
+    @Root() svc: AuthService,
     @Arg("xlogin") xlogin: string
   ): Promise<string> {
-    return await ctx.salt(xlogin);
+    return await svc.salt(xlogin);
   }
 
   @FieldResolver(of => Token)
   async login(
-    @Root() ctx: AuthService,
+    @Ctx() ctx,
+    @Root() svc: AuthService,
     @Arg("xlogin") xlogin: string,
     @Arg("xhpassword") xhpassword: string
   ): Promise<Token> {
-    return await ctx.login(xlogin, xhpassword);
-  }
-
-  @FieldResolver(of => Token)
-  async refresh(
-    @Root() ctx: AuthService,
-    @Arg("refresh") refresh: string
-  ): Promise<Token> {
-    return await ctx.refresh(refresh);
+    logger.info({ ctx }, "login")
+    return await svc.login(xlogin, xhpassword, {
+      clientIP: ctx.remoteAddress,
+      userAgent: ctx.headers["user-agent"]
+    });
   }
 }

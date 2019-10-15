@@ -13,6 +13,10 @@ chai.use(chaiHttp);
 
 export const values = {} as any;
 export const config = yaml.safeLoad(fs.readFileSync("config.yaml").toString());
+
+const ecdh = crypto.createECDH(this.config.auth.curves);
+ecdh.generateKeys();
+
 if (fs.existsSync("module.yaml")) {
   const gmods = yaml.safeLoad(fs.readFileSync("module.yaml").toString());
   Object.entries(gmods).forEach((v: any) => {
@@ -51,8 +55,6 @@ export class BaseTest {
   protected config: any = config;
 
   public async postLogin(username, password) {
-    const ecdh = crypto.createECDH(this.config.auth.curves);
-    ecdh.generateKeys();
     values.ecdh = ecdh;
 
     let res = await this.post(
@@ -132,7 +134,7 @@ export class BaseTest {
       `{
       auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
         login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
-          seq token refresh
+          seq token
         }
       }
     }`,
@@ -142,7 +144,17 @@ export class BaseTest {
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
     values.seq = parseInt(res.body.data.auth.login.seq, 10);
     values.token = res.body.data.auth.login.token;
-    values.refresh = res.body.data.auth.login.refresh;
+  }
+
+  public async postLogout() {
+    const res = await this.post(`
+      {
+        logout
+      }`,
+      { token: values.token }
+    );
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
   }
 
   public async post(query: string, { token } = { token: values.token }) {

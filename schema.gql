@@ -3,6 +3,13 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+input AddMovieInput {
+  title: String!
+  year: Float!
+  cast: [String!]
+  genres: [String!]
+}
+
 input AddRoleInput {
   code: String!
   name: String!
@@ -21,7 +28,6 @@ type Auth {
   serverKey: String!
   salt(xlogin: String!): String!
   login(xhpassword: String!, xlogin: String!): Token!
-  refresh(refresh: String!): Token!
 }
 
 type Commit {
@@ -41,6 +47,13 @@ type DeleteResponse {
   deleted: Int!
 }
 
+input FilterMovieInput {
+  id: ID
+  title: String
+  titleRegex: String
+  year: Float
+}
+
 input FilterRoleInput {
   id: ID
   code: String
@@ -55,13 +68,29 @@ input FilterUserInput {
   nameRegex: String
 }
 
+type Movie {
+  id: String!
+  title: String!
+  year: Float!
+  cast: [String!]
+  genres: [String!]
+}
+
 type Mutation {
+  addMovie(data: AddMovieInput!): Movie!
+  updateMovies(data: UpdateMovieInput!, filter: FilterMovieInput!): UpdateResponse!
+  deleteMovies(filter: FilterMovieInput!): DeleteResponse!
   addUser(data: AddUserInput!): User!
   updateUsers(data: UpdateUserInput!, filter: FilterUserInput!): UpdateResponse!
   deleteUsers(filter: FilterUserInput!): DeleteResponse!
   addRole(data: AddRoleInput!): Role!
   updateRoles(data: UpdateRoleInput!, filter: FilterRoleInput!): UpdateResponse!
   deleteRoles(filter: FilterRoleInput!): DeleteResponse!
+}
+
+type PartialMovie {
+  items: [Movie!]!
+  total: Int!
 }
 
 type PartialRole {
@@ -75,11 +104,13 @@ type PartialUser {
 }
 
 type Query {
+  movies(filter: FilterMovieInput, limit: Float, skip: Float): PartialMovie
   users(filter: FilterUserInput, limit: Float, skip: Float): PartialUser
   roles(filter: FilterRoleInput, limit: Float, skip: Float): PartialRole
   auth(clientKey: String!): Auth!
+  logout: Boolean!
   accountInfo: ServerInfo!
-  me: UserToken
+  me(ts: String): UserToken
 }
 
 type Role {
@@ -100,7 +131,13 @@ type ServerInfo {
 type Token {
   seq: String!
   token: String!
-  refresh: String!
+}
+
+input UpdateMovieInput {
+  title: String!
+  year: Float!
+  cast: [String!]
+  genres: [String!]
 }
 
 type UpdateResponse {
@@ -130,8 +167,10 @@ type User {
 }
 
 type UserToken {
+  time: DateTime
   clientKey: ID
   xlogin: String
   name: String
   privileges: [String!]
+  token: Token
 }

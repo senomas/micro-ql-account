@@ -4,6 +4,7 @@ const { spawn } = require("child_process");
 const args = require("yargs").argv;
 const gitlog = require("gitlog");
 const fs = require("fs");
+const netstat = require('node-netstat');
 
 async function tsc() {
   await shell.exec("npx tsc -p tsconfig.build.json", {
@@ -58,7 +59,64 @@ async function run() {
   });
 }
 
+async function killPorts(ports) {
+  const res = {};
+  await new Promise((resolve, reject) => {
+    netstat({
+      filter: {
+        state: 'LISTEN'
+      },
+      done: (err) => {
+        if (err) {
+          return reject(err)
+        }
+        resolve()
+      }
+    }, data => {
+      res[data.local.port] = data;
+    })
+  })
+  for (port of ports) {
+    if (res[port]) {
+      console.log(`kill ${res[port].pid}`);
+      await shell.exec(`kill ${res[port].pid}`, {
+        async: false
+      });
+    }
+  }
+}
+
+async function waitPorts(ports) {
+  const expiry = Date.now() + 90000;
+  while (true) {
+    let res = [];
+    await new Promise((resolve, reject) => {
+      netstat({
+        filter: {
+          state: 'LISTEN'
+        },
+        done: (err) => {
+          if (err) {
+            return reject(err)
+          }
+          resolve()
+        }
+      }, data => {
+        res.push(data);
+      })
+    })
+    res = res.filter(data => ports.indexOf(data.local.port) >= 0);
+    if (res.length === ports.length) {
+      return
+    }
+    if (expiry < Date.now()) {
+      throw `port not ready ${res.map(data => data.local.port)}`
+    }
+  }
+}
+
 async function test() {
+  await killPorts([5000])
   await shell.exec("rm -rf log dist", {
     async: false
   });
@@ -73,15 +131,16 @@ async function test() {
   });
   proc.stdout.pipe(process.stdout);
   proc.stderr.pipe(process.stderr);
-  // await new Promise(resolve => setTimeout(resolve, 3000));
+  console.log("waiting server...");
+  await waitPorts([5000])
   console.log(
     `npx mocha -r ts-node/register ${
-      args.bail ? "-b" : ""
+    args.bail ? "-b" : ""
     } --color -t 90000 test/**/*${args.mod ? `${args.mod}*` : ""}.spec.ts`
   );
   shell.exec(
     `npx mocha -r ts-node/register  ${
-      args.bail ? "-b" : ""
+    args.bail ? "-b" : ""
     } --color -t 90000 test/**/*${args.mod ? `${args.mod}*` : ""}.spec.ts`,
     {
       env: {

@@ -111,28 +111,13 @@ export class LoginTest extends BaseTest {
     res = await this.post(`{
       auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
         login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
-          seq token refresh
+          seq token
         }
       }
     }`);
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
-    values.refresh = res.body.data.auth.login.refresh;
-  }
-
-  @test
-  public async testRefresh() {
-    const ecdh = values.ecdh;
-    const res = await this.post(`{
-      auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-        refresh(refresh: "${values.refresh}") {
-          seq token refresh
-        }
-      }
-    }`);
-    expect(res.status, res.log).to.eql(200);
-    expect(res.body, res.log).to.not.haveOwnProperty("errors");
-    values.token = res.body.data.auth.refresh.token;
+    values.token = res.body.data.auth.login.token;
   }
 
   @test
@@ -143,10 +128,15 @@ export class LoginTest extends BaseTest {
         xlogin
         name
         privileges
+        token {
+          seq
+          token
+        }
       }
     }`);
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(res.body.data.me.token, res.log).to.eql(null);
   }
 
   @test
@@ -157,6 +147,10 @@ export class LoginTest extends BaseTest {
         xlogin
         name
         privileges
+        token {
+          seq
+          token
+        }
       }
     }`, { token: null });
     expect(res.status, res.log).to.eql(200);
@@ -167,17 +161,38 @@ export class LoginTest extends BaseTest {
 
   @test
   public async testExpiredToken() {
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 2100));
     const res = await this.post(`{
       me {
         clientKey
         xlogin
         name
         privileges
+        token {
+          seq
+          token
+        }
       }
     }`);
     expect(res.status, res.log).to.eql(200);
-    expect(res.body, res.log).to.haveOwnProperty("errors");
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(res.body.data.me.token, res.log).to.not.eql(null);
+  }
+
+  @test
+  public async testLogout() {
+    await this.postLogout();
+  }
+
+  @test
+  public async testRelogin() {
+    await this.postLogin("admin", "dodol123");
+  }
+
+  // @test
+  public async testReloginAfterTimeout() {
+    await new Promise(resolve => setTimeout(resolve, 2100));
+    await this.postLogin("admin", "dodol123");
   }
 }
 

@@ -5,6 +5,8 @@ import * as os from 'os';
 
 import { config, keyEncoder } from '../config';
 
+export const NODE_ENV = (process.env.NODE_ENV || "production").toLowerCase();
+
 export const appName = "account";
 if (config.logger && config.logger.path && !fs.existsSync(config.logger.path)) {
   fs.mkdirSync(config.logger.path);

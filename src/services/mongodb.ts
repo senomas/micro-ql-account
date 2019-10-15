@@ -1,8 +1,6 @@
 import { Collection, Cursor, Db, MongoClient } from "mongodb";
 import { logger } from "./service";
 
-const NODE_ENV = (process.env.NODE_ENV || "production").toLowerCase();
-
 export class MongoModel {
   public db: Db;
   public loadKey = (data: any): any => ({ _id: data._id });
@@ -14,6 +12,10 @@ export class MongoModel {
 
   public async insertOne(value, options = null) {
     return this.collection.insertOne(value, options);
+  }
+
+  public async updateOne(filter, update, options = null) {
+    return this.collection.updateOne(filter, update, options);
   }
 
   public async updateMany(filter, update, options = null) {
@@ -38,11 +40,19 @@ export class MongoModel {
 
   public async load(data) {
     if (Array.isArray(data)) {
-      const res = [];
+      const bw = [];
       for (const v of data) {
-        res.push(await this.load(v));
+        bw.push({
+          updateOne: {
+            filter: await this.loadKey(v),
+            update: {
+              $set: await this.loadEnhance(v)
+            },
+            upsert: true
+          }
+        });
       }
-      return res;
+      return await this.collection.bulkWrite(bw);
     }
     const res = await this.collection.updateOne(
       await this.loadKey(data), {
@@ -88,7 +98,7 @@ export class Mongodb {
     );
     const version = this.db.collection("version");
     await version.createIndex(
-      { id: 1 },
+      { code: 1 },
       {
         unique: true
       }
@@ -97,17 +107,6 @@ export class Mongodb {
 
   public async create(name, options = null) {
     const col = this.db.collection(name);
-    if (NODE_ENV === "development" || NODE_ENV === "test") {
-      try {
-        await col.drop();
-      } catch (err) {
-        if (err.message && err.message.indexOf("ns not found") >= 0) {
-          // skip
-        } else {
-          throw err;
-        }
-      }
-    }
     const model = this.models[name] = new MongoModel(this, col);
     return model;
   }
