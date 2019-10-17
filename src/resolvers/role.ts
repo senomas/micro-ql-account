@@ -1,7 +1,7 @@
-import { Resolver } from 'type-graphql';
+import { Resolver } from "type-graphql";
 
-import { Role, PartialRole, AddRoleInput, FilterRoleInput, UpdateRoleInput } from '../schemas/role';
-import { createBaseResolver } from './lib';
+import { AddRoleInput, FilterRoleInput, PartialRole, Role, UpdateRoleInput } from "../schemas/role";
+import { createBaseResolver } from "./lib";
 
 @Resolver(of => Role)
 export class RoleResolver extends createBaseResolver({
@@ -16,6 +16,6 @@ export class RoleResolver extends createBaseResolver({
     super();
     this.queryFilters.nameRegex = (query, v) => {
       query.name = { $regex: v };
-    }
+    };
   }
 }

@@ -1,11 +1,10 @@
-import { ApolloError } from 'apollo-server-errors';
-import crypto from 'crypto';
-import * as jwt from 'jsonwebtoken';
+import crypto from "crypto";
+import * as jwt from "jsonwebtoken";
 
-import { config } from '../config';
-import { Token } from '../schemas/auth';
-import { mongodb } from './mongodb';
-import { accountKey, logger } from './service';
+import { config } from "../config";
+import { Token } from "../schemas/auth";
+import { mongodb } from "./mongodb";
+import { accountKey, ApolloInvalidClientKeyError, ApolloInvalidPasswordError, ApolloMultipleSessionError, ApolloSessionExpiredError, ApolloUnknownKeyIDError, ApolloUserNotFoundError, logger } from "./service";
 
 export class AuthService {
   public serverKey: string;
@@ -35,6 +34,7 @@ export class AuthService {
   }
 
   public async salt(xlogin: string): Promise<string> {
+    await new Promise(resolve => setTimeout(resolve, 1000));
     const aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
       aesd.update(Buffer.from(xlogin, "base64")),
@@ -47,16 +47,17 @@ export class AuthService {
       return Buffer.concat([
         aes.update(Buffer.from(user.salt, "utf8")),
         aes.final()
-      ]).toString("base64")
+      ]).toString("base64");
     }
     logger.info({ xlogin, login }, "invalid login");
-    throw new ApolloError("invalid login", "InvalidLogin", {
+    throw new ApolloUserNotFoundError({
       xlogin,
       login
     });
   }
 
-  public async login(xlogin: string, xhpassword: string, info: any = {}): Promise<Token> {
+  public async login(xlogin: string, xhpassword: string, expiry: number, info: any = {}): Promise<Token> {
+    await new Promise(resolve => setTimeout(resolve, 1000));
     let aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
       aesd.update(Buffer.from(xlogin, "base64")),
@@ -72,7 +73,7 @@ export class AuthService {
       ]).toString("base64");
       if (user.password === hpasswordInput) {
         if (config.auth.singleSession && user.audits) {
-          let sessions = {};
+          const sessions = {};
           if (config.auth.sessionExpiry) {
             const now = Date.now();
             for (let i = user.audits.length - 1; i >= 0; i--) {
@@ -94,13 +95,16 @@ export class AuthService {
             }
           }
           if (Object.keys(sessions).length > 0) {
-            throw new ApolloError("MultipleSession", "MultipleSession", {
+            throw new ApolloMultipleSessionError({
               xlogin,
               login,
               xhpassword,
               hpasswordInput,
-              user,
-              sessions
+              debug: {
+                login,
+                user,
+                sessions
+              }
             });
           }
         }
@@ -120,19 +124,20 @@ export class AuthService {
             }
           }
         });
-        return await this.generateToken(user, xlogin);
+        return await this.generateToken(user, xlogin, expiry);
       }
       logger.info({ xlogin, login, user, hpasswordInput }, "invalid login");
-      throw new ApolloError("InvalidLogin", "InvalidLogin", {
+      throw new ApolloInvalidPasswordError({
         xlogin,
-        login,
         xhpassword,
-        hpasswordInput,
-        user
+        debug: {
+          hpasswordInput,
+          login, user
+        }
       });
     }
     logger.info({ xlogin, login }, "invalid login");
-    throw new ApolloError("InvalidLogin", "InvalidLogin", {
+    throw new ApolloUserNotFoundError({
       xlogin
     });
   }
@@ -144,7 +149,7 @@ export class AuthService {
     logger.info({ token, header }, "jwt refresh");
     const keyid = header.kid;
     if (!(config.keys[keyid] && config.keys[keyid].key)) {
-      throw new ApolloError("unknown keyid", "UnknownKeyID", {
+      throw new ApolloUnknownKeyIDError({
         header,
         token,
       });
@@ -153,13 +158,13 @@ export class AuthService {
     const expired = (refreshObj.iat + config.auth.sessionExpiry) * 1000;
     if (expired < Date.now()) {
       logger.info({ token, expired, now: Date.now() }, "jwt refresh");
-      throw new ApolloError("SessionExpired", "SessionExpired", {
+      throw new ApolloSessionExpiredError({
         expired: new Date(expired)
       });
     }
     logger.info({ token, header, refreshObj }, "jwt refresh");
     const xlogin = refreshObj.xl;
-    let aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
+    const aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
       aesd.update(Buffer.from(xlogin, "base64")),
       aesd.final()
@@ -167,70 +172,74 @@ export class AuthService {
     const user = await mongodb.models.user.findOne({ login });
     if (config.auth.singleSession) {
       let session = null;
-      if (config.auth.sessionExpiry) {
-        const now = Date.now();
-        for (let i = user.audits.length - 1; i >= 0; i--) {
-          const audit = user.audits[i];
-          if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
-            session = audit;
-          } else if (audit.action === "logout" || audit.action === "logoutForced") {
-            session = null;
+      if (user.audits) {
+        if (config.auth.sessionExpiry) {
+          const now = Date.now();
+          for (let i = user.audits.length - 1; i >= 0; i--) {
+            const audit = user.audits[i];
+            if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
+              session = audit;
+            } else if (audit.action === "logout" || audit.action === "logoutForced") {
+              session = null;
+            }
           }
-        }
-      } else {
-        for (let i = user.audits.length - 1; i >= 0; i--) {
-          const audit = user.audits[i];
-          if (audit.action === "login") {
-            session = audit;
-          } else if (audit.action === "logout" || audit.action === "logoutForced") {
-            session = null;
+        } else {
+          for (let i = user.audits.length - 1; i >= 0; i--) {
+            const audit = user.audits[i];
+            if (audit.action === "login") {
+              session = audit;
+            } else if (audit.action === "logout" || audit.action === "logoutForced") {
+              session = null;
+            }
           }
         }
       }
       if (session) {
         if (session.clientKey !== refreshObj.ck) {
-          throw new ApolloError("TokenNotFound", "TokenNotFound");
+          throw new ApolloInvalidClientKeyError();
         }
       } else {
-        throw new ApolloError("TokenNotFound", "TokenNotFound");
+        throw new ApolloInvalidClientKeyError();
       }
     } else {
-      let sessions = {};
-      if (config.auth.sessionExpiry) {
-        const now = Date.now();
-        for (let i = user.audits.length - 1; i >= 0; i--) {
-          const audit = user.audits[i];
-          if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
-            sessions[audit.clientKey] = audit;
-          } else if (audit.action === "logout" || audit.action === "logoutForced") {
-            delete sessions[audit.clientKey];
+      const sessions = {};
+      if (user.audits) {
+        if (config.auth.sessionExpiry) {
+          const now = Date.now();
+          for (let i = user.audits.length - 1; i >= 0; i--) {
+            const audit = user.audits[i];
+            if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
+              sessions[audit.clientKey] = audit;
+            } else if (audit.action === "logout" || audit.action === "logoutForced") {
+              delete sessions[audit.clientKey];
+            }
           }
-        }
-      } else {
-        for (let i = user.audits.length - 1; i >= 0; i--) {
-          const audit = user.audits[i];
-          if (audit.action === "login") {
-            sessions[audit.clientKey] = audit;
-          } else if (audit.action === "logout" || audit.action === "logoutForced") {
-            delete sessions[audit.clientKey];
+        } else {
+          for (let i = user.audits.length - 1; i >= 0; i--) {
+            const audit = user.audits[i];
+            if (audit.action === "login") {
+              sessions[audit.clientKey] = audit;
+            } else if (audit.action === "logout" || audit.action === "logoutForced") {
+              delete sessions[audit.clientKey];
+            }
           }
         }
       }
       if (!sessions[refreshObj.ck]) {
-        throw new ApolloError("TokenNotFound", "TokenNotFound");
+        throw new ApolloInvalidClientKeyError();
       }
     }
     logger.info({ login, user }, "get user");
     if (user) {
       return await this.generateToken(user, xlogin);
     }
-    throw new ApolloError("invalid refresh", "InvalidLogin", {
-      token,
+    throw new ApolloInvalidClientKeyError({
+      token
     });
   }
 
-  public async logout(xlogin: string, info: any = {}): Promise<Boolean> {
-    let aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
+  public async logout(xlogin: string, info: any = {}): Promise<boolean> {
+    const aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
       aesd.update(Buffer.from(xlogin, "base64")),
       aesd.final()
@@ -258,13 +267,16 @@ export class AuthService {
       return res.modifiedCount === 1;
     }
     logger.info({ xlogin, login }, "invalid login");
-    throw new ApolloError("InvalidLogin", "InvalidLogin", {
-      login,
-      xlogin
+    throw new ApolloUserNotFoundError({
+      xlogin,
+      debug: {
+        login
+      }
     });
   }
 
-  public async generateToken(user, xlogin = null): Promise<Token> {
+  public async generateToken(user, xlogin, expiry = null): Promise<Token> {
+    // FIXME validate max expiry
     const privileges = (await mongodb.models.role.find({ code: { $in: user.roles } })
       .toArray()).reduce((acc, role) => {
         acc.push(...role.privileges);
@@ -279,11 +291,11 @@ export class AuthService {
     }, config.keys.auth.pkey, {
       algorithm: "ES256",
       keyid: "auth",
-      expiresIn: config.auth.tokenExpiry
+      expiresIn: expiry || config.auth.tokenExpiry
     });
     return {
       seq: Date.now(),
       token
-    }
+    };
   }
 }

@@ -1,71 +1,71 @@
-import { Field, ID, ObjectType, InputType } from 'type-graphql';
-import { Partial } from './lib';
-import { Length, MaxLength } from 'class-validator';
+import { Length, MaxLength } from "class-validator";
+import { Field, ID, InputType, ObjectType } from "type-graphql";
+import { Partial } from "./lib";
 
 @ObjectType()
 export class User {
   @Field()
-  id: string;
+  public id: string;
 
   @Field()
-  login: string;
+  public login: string;
 
   @Field()
-  name: string;
+  public name: string;
 
   @Field(type => [String])
-  roles: string[];
+  public roles: string[];
 }
 
 @InputType()
 export class AddUserInput {
   @Field()
   @Length(3, 100)
-  login: string;
+  public login: string;
 
   @Field()
   @Length(3, 100)
-  name: string;
+  public name: string;
 
   @Field({ nullable: true })
   @MaxLength(500)
-  description?: string;
+  public description?: string;
 
   @Field(type => [String])
-  roles: string[];
+  public roles: string[];
 }
 
 @InputType()
 export class UpdateUserInput {
   @Field({ nullable: true })
   @Length(3, 100)
-  login: string;
+  public login: string;
 
   @Field({ nullable: true })
   @Length(3, 100)
-  name: string;
+  public name: string;
 
   @Field({ nullable: true })
   @MaxLength(500)
-  description?: string;
+  public description?: string;
 
   @Field(type => [String], { nullable: true })
-  roles: string[];
+  public roles: string[];
 }
 
 @InputType()
 export class FilterUserInput {
   @Field(type => ID, { nullable: true })
-  id: string;
+  public id: string;
 
   @Field({ nullable: true })
-  login: string;
+  public login: string;
 
   @Field({ nullable: true })
-  name: string;
+  public name: string;
 
   @Field({ nullable: true })
-  nameRegex: string;
+  public nameRegex: string;
 }
 
 @ObjectType()

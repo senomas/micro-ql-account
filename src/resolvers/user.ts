@@ -1,7 +1,7 @@
-import { Resolver } from 'type-graphql';
+import { Resolver } from "type-graphql";
 
-import { User, PartialUser, AddUserInput, FilterUserInput, UpdateUserInput } from '../schemas/user';
-import { createBaseResolver } from './lib';
+import { AddUserInput, FilterUserInput, PartialUser, UpdateUserInput, User } from "../schemas/user";
+import { createBaseResolver } from "./lib";
 
 @Resolver(of => User)
 export class UserResolver extends createBaseResolver({
@@ -16,6 +16,6 @@ export class UserResolver extends createBaseResolver({
     super();
     this.queryFilters.nameRegex = (query, v) => {
       query.name = { $regex: v };
-    }
+    };
   }
 }

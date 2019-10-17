@@ -1,6 +1,6 @@
 import fs = require("fs");
 import yaml = require("js-yaml");
-import KeyEncoder from 'key-encoder';
+import KeyEncoder from "key-encoder";
 
 export const config = yaml.safeLoad(fs.readFileSync("config.yaml").toString());
 

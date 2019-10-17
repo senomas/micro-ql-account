@@ -1,74 +1,74 @@
-import { Field, ID, ObjectType, InputType, Authorized } from 'type-graphql';
-import { Partial } from './lib';
-import { MaxLength, Length } from "class-validator";
+import { Length, MaxLength } from "class-validator";
+import { Authorized, Field, ID, InputType, ObjectType } from "type-graphql";
+import { Partial } from "./lib";
 
 @ObjectType()
 export class Role {
   @Field(type => ID)
-  id: string;
+  public id: string;
 
   @Field()
-  code: string;
+  public code: string;
 
   @Field()
-  name: string;
+  public name: string;
 
   @Field({ nullable: true })
-  description?: string;
+  public description?: string;
 
   @Field(type => [String])
-  privileges: string[];
+  public privileges: string[];
 }
 
 @InputType()
 export class AddRoleInput {
   @Field()
   @Length(3, 100)
-  code: string;
+  public code: string;
 
   @Field()
   @Length(3, 100)
-  name: string;
+  public name: string;
 
   @Field({ nullable: true })
   @MaxLength(500)
-  description?: string;
+  public description?: string;
 
   @Field(type => [String])
-  privileges: string[];
+  public privileges: string[];
 }
 
 @InputType()
 export class UpdateRoleInput {
   @Field({ nullable: true })
   @Length(3, 100)
-  code: string;
+  public code: string;
 
   @Field({ nullable: true })
   @Length(3, 100)
-  name: string;
+  public name: string;
 
   @Field({ nullable: true })
   @MaxLength(500)
-  description?: string;
+  public description?: string;
 
   @Field(type => [String], { nullable: true })
-  privileges: string[];
+  public privileges: string[];
 }
 
 @InputType()
 export class FilterRoleInput {
   @Field(type => ID, { nullable: true })
-  id: string;
+  public id: string;
 
   @Field({ nullable: true })
-  code: string;
+  public code: string;
 
   @Field({ nullable: true })
-  name: string;
+  public name: string;
 
   @Field({ nullable: true })
-  nameRegex: string;
+  public nameRegex: string;
 }
 
 @ObjectType()

@@ -1,5 +1,5 @@
+import { AuthChecker, ForbiddenError, UnauthorizedError } from "type-graphql";
 import { logger } from "./services/service";
-import { AuthChecker, UnauthorizedError, ForbiddenError } from "type-graphql";
 
 export const customAuthChecker: AuthChecker<any> = (
   { root, args, context, info },
@@ -25,7 +25,7 @@ export const customAuthChecker: AuthChecker<any> = (
       if (user.p.indexOf(role) < 0) {
         logger.info({ pass: false, role, user, roles }, "customAuthChecker mandatory");
         if (error) {
-          throw new ForbiddenError();
+          return false;
         }
         return false;
       }

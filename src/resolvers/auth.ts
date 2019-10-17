@@ -1,27 +1,28 @@
+import * as fs from "fs";
+import * as os from "os";
 import {
   Arg,
+  Ctx,
   FieldResolver,
+  Int,
   Query,
   Resolver,
   Root,
-  Ctx
 } from "type-graphql";
-import * as os from "os";
-import * as fs from "fs";
-import { Auth, Token, UserToken, ServerInfo } from "../schemas/auth";
+import { Auth, ServerInfo, Token, UserToken } from "../schemas/auth";
 import { AuthService } from "../services/auth";
 import { logger } from "../services/service";
 
 @Resolver(of => Auth)
 export class AuthResolver {
   @Query(returns => Auth)
-  auth(@Arg("clientKey") clientKey: string): AuthService {
+  public auth(@Arg("clientKey") clientKey: string): AuthService {
     return new AuthService(clientKey);
   }
 
   @Query(returns => Boolean)
-  async logout(@Ctx() ctx): Promise<Boolean> {
-    logger.info({ ctx }, "logout")
+  public async logout(@Ctx() ctx): Promise<boolean> {
+    logger.info({ ctx }, "logout");
     const svc = new AuthService(ctx.user.ck);
     return await svc.logout(ctx.user.xl, {
       clientIP: ctx.remoteAddress,
@@ -30,9 +31,8 @@ export class AuthResolver {
   }
 
   @Query(returns => ServerInfo)
-  accountInfo(): ServerInfo {
+  public accountInfo(): ServerInfo {
     const data = JSON.parse(fs.readFileSync("./dist/build.json").toString());
-    logger.info({ data }, "build.json");
     return {
       host: os.hostname(),
       time: new Date(),
@@ -47,8 +47,8 @@ export class AuthResolver {
   }
 
   @Query(returns => UserToken, { nullable: true })
-  async me(@Ctx() ctx, @Arg("ts", { nullable: true }) ts: string): Promise<UserToken> {
-    logger.info({ ctx, ts }, "me")
+  public async me(@Ctx() ctx, @Arg("ts", { nullable: true }) ts: string): Promise<UserToken> {
+    logger.info({ ctx, ts }, "me");
     if (ctx.user) {
       return {
         time: new Date(),
@@ -56,6 +56,8 @@ export class AuthResolver {
         xlogin: ctx.user.xl,
         name: ctx.user.n,
         privileges: ctx.user.p,
+        issuedAt: new Date(ctx.user.iat * 1000),
+        expiredAt: new Date(ctx.user.exp * 1000),
         token: ctx.user.token
       };
     }
@@ -65,12 +67,14 @@ export class AuthResolver {
       xlogin: null,
       name: null,
       privileges: [],
+      issuedAt: null,
+      expiredAt: null,
       token: null
     };
   }
 
   @FieldResolver(of => String)
-  async salt(
+  public async salt(
     @Root() svc: AuthService,
     @Arg("xlogin") xlogin: string
   ): Promise<string> {
@@ -78,14 +82,15 @@ export class AuthResolver {
   }
 
   @FieldResolver(of => Token)
-  async login(
+  public async login(
     @Ctx() ctx,
     @Root() svc: AuthService,
     @Arg("xlogin") xlogin: string,
-    @Arg("xhpassword") xhpassword: string
+    @Arg("xhpassword") xhpassword: string,
+    @Arg("expiry", of => Int, { nullable: true }) expiry: number
   ): Promise<Token> {
-    logger.info({ ctx }, "login")
-    return await svc.login(xlogin, xhpassword, {
+    logger.info({ ctx }, "login");
+    return await svc.login(xlogin, xhpassword, expiry, {
       clientIP: ctx.remoteAddress,
       userAgent: ctx.headers["user-agent"]
     });

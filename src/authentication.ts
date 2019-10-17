@@ -1,11 +1,12 @@
-import * as jwt from "jsonwebtoken";
-import { logger } from "./services/service";
-import { config } from "./config";
 import { AuthenticationError } from "apollo-server-core";
+import * as jwt from "jsonwebtoken";
+import { ForbiddenError } from "type-graphql";
+import { config } from "./config";
 import { AuthService } from "./services/auth";
+import { logger } from "./services/service";
 
 export async function getUser(req) {
-  let token = req.headers["x-access-token"] || req.headers["authorization"];
+  let token = req.headers["x-access-token"] || req.headers.authorization;
   logger.info({ token }, "auth token");
   if (token && token !== "") {
     if (token.startsWith("Bearer ")) {
@@ -37,9 +38,16 @@ export async function parseToken(token) {
     logger.error({ header, token, err }, "invalid token");
     if (err && err.name === "TokenExpiredError") {
       const user = jwt.decode(token);
-      const svc = new AuthService(user.ck)
-      user.token = await svc.refresh(token)
-      return user
+      const svc = new AuthService(user.ck);
+      user.token = await svc.refresh(token);
+      if (!user.token) {
+        throw new AuthenticationError("InvalidToken");
+      } else if (user.token.error) {
+        throw new ForbiddenError();
+      } else if (!user.token.token) {
+        throw new AuthenticationError("InvalidToken");
+      }
+      return user;
     } else {
       throw new AuthenticationError("InvalidToken");
     }

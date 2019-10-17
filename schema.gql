@@ -27,7 +27,7 @@ input AddUserInput {
 type Auth {
   serverKey: String!
   salt(xlogin: String!): String!
-  login(xhpassword: String!, xlogin: String!): Token!
+  login(expiry: Int, xhpassword: String!, xlogin: String!): Token!
 }
 
 type Commit {
@@ -77,15 +77,15 @@ type Movie {
 }
 
 type Mutation {
-  addMovie(data: AddMovieInput!): Movie!
-  updateMovies(data: UpdateMovieInput!, filter: FilterMovieInput!): UpdateResponse!
-  deleteMovies(filter: FilterMovieInput!): DeleteResponse!
   addUser(data: AddUserInput!): User!
   updateUsers(data: UpdateUserInput!, filter: FilterUserInput!): UpdateResponse!
   deleteUsers(filter: FilterUserInput!): DeleteResponse!
   addRole(data: AddRoleInput!): Role!
   updateRoles(data: UpdateRoleInput!, filter: FilterRoleInput!): UpdateResponse!
   deleteRoles(filter: FilterRoleInput!): DeleteResponse!
+  addMovie(data: AddMovieInput!): Movie!
+  updateMovies(data: UpdateMovieInput!, filter: FilterMovieInput!): UpdateResponse!
+  deleteMovies(filter: FilterMovieInput!): DeleteResponse!
 }
 
 type PartialMovie {
@@ -104,9 +104,12 @@ type PartialUser {
 }
 
 type Query {
-  movies(filter: FilterMovieInput, limit: Int, skip: Int): PartialMovie
+  user(id: ID!): User
   users(filter: FilterUserInput, limit: Int, skip: Int): PartialUser
+  role(id: ID!): Role
   roles(filter: FilterRoleInput, limit: Int, skip: Int): PartialRole
+  movie(id: ID!): Movie
+  movies(filter: FilterMovieInput, limit: Int, skip: Int): PartialMovie
   auth(clientKey: String!): Auth!
   logout: Boolean!
   accountInfo: ServerInfo!
@@ -172,5 +175,7 @@ type UserToken {
   xlogin: String
   name: String
   privileges: [String!]
+  issuedAt: DateTime
+  expiredAt: DateTime
   token: Token
 }

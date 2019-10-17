@@ -115,7 +115,13 @@ async function waitPorts(ports) {
   }
 }
 
+async function fix() {
+  await shell.exec("tslint --fix --project .", {
+    async: false
+  });
+}
 async function test() {
+  await fix();
   await killPorts([5000])
   await shell.exec("rm -rf log dist", {
     async: false
@@ -155,6 +161,7 @@ async function test() {
 }
 
 module.exports = {
+  fix,
   tsc,
   copyData,
   build,

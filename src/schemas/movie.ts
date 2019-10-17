@@ -1,68 +1,68 @@
-import { Field, ID, ObjectType, InputType } from 'type-graphql';
-import { Partial } from './lib';
-import { Length, MaxLength } from 'class-validator';
+import { Length, MaxLength } from "class-validator";
+import { Field, ID, InputType, ObjectType } from "type-graphql";
+import { Partial } from "./lib";
 
 @ObjectType()
 export class Movie {
   @Field()
-  id: string;
+  public id: string;
 
   @Field()
-  title: string;
+  public title: string;
 
   @Field()
-  year: number;
+  public year: number;
 
   @Field(type => [String], { nullable: true })
-  cast: string[];
+  public cast: string[];
 
   @Field(type => [String], { nullable: true })
-  genres: string[];
+  public genres: string[];
 }
 
 @InputType()
 export class AddMovieInput {
   @Field()
-  title: string;
+  public title: string;
 
   @Field()
-  year: number;
+  public year: number;
 
   @Field(type => [String], { nullable: true })
-  cast: string[];
+  public cast: string[];
 
   @Field(type => [String], { nullable: true })
-  genres: string[];
+  public genres: string[];
 }
 
 @InputType()
 export class UpdateMovieInput {
   @Field()
-  title: string;
+  public title: string;
 
   @Field()
-  year: number;
+  public year: number;
 
   @Field(type => [String], { nullable: true })
-  cast: string[];
+  public cast: string[];
 
   @Field(type => [String], { nullable: true })
-  genres: string[];
+  public genres: string[];
 }
 
 @InputType()
 export class FilterMovieInput {
   @Field(type => ID, { nullable: true })
-  id: string;
+  public id: string;
 
   @Field({ nullable: true })
-  title: string;
+  public title: string;
 
   @Field({ nullable: true })
-  titleRegex: string;
+  public titleRegex: string;
 
   @Field({ nullable: true })
-  year: number;
+  public year: number;
 }
 
 @ObjectType()

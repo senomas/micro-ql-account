@@ -27,6 +27,21 @@ export class RoleCrudTest extends BaseTest {
     }`);
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    values.items = res.body.data.roles.items;
+  }
+
+  @test
+  public async testFindByID() {
+    const res = await this.post(`{
+      role(id: "${values.items[0].id}") {
+        id
+        code
+        name
+        privileges
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
   }
 
   @test
@@ -66,7 +81,7 @@ export class RoleCrudTest extends BaseTest {
 
   @test
   public async insertNewRole() {
-    const res = await this.post(`mutation { 
+    const res = await this.post(`mutation {
       addRole(data: {code: "demo", name: "Demo", privileges: ["demo"]}) {
         id
         code
@@ -80,7 +95,7 @@ export class RoleCrudTest extends BaseTest {
 
   @test
   public async updateRole() {
-    const res = await this.post(`mutation { 
+    const res = await this.post(`mutation {
       updateRoles(filter: { code: "demo" }, data: {name: "Demox", privileges: ["demox"]}) {
         matched
         modified
@@ -93,7 +108,7 @@ export class RoleCrudTest extends BaseTest {
 
   @test
   public async deleteRoles() {
-    const res = await this.post(`mutation { 
+    const res = await this.post(`mutation {
       deleteRoles(filter: { code: "demo" }) {
         deleted
       }

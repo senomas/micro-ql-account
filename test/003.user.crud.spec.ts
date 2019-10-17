@@ -1,10 +1,10 @@
-import 'mocha';
+import "mocha";
 
-import { expect } from 'chai';
-import crypto from 'crypto';
-import { suite, test } from 'mocha-typescript';
+import { expect } from "chai";
+import crypto from "crypto";
+import { suite, test } from "mocha-typescript";
 
-import { BaseTest, values } from './base';
+import { BaseTest, values } from "./base";
 
 @suite
 export class UserCrudTest extends BaseTest {
@@ -109,4 +109,3 @@ export class UserCrudTest extends BaseTest {
     expect(res.body, res.log).to.haveOwnProperty("errors");
   }
 }
-

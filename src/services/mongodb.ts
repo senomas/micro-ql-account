@@ -3,12 +3,15 @@ import { logger } from "./service";
 
 export class MongoModel {
   public db: Db;
-  public loadKey = (data: any): any => ({ _id: data._id });
-  public loadEnhance = (data: any): any => data;
+  private mongodb: Mongodb;
 
-  constructor(private mongodb: Mongodb, public collection: Collection) {
+  // tslint:disable-next-line
+  constructor(mongodb: Mongodb, public collection: Collection) {
+    this.mongodb = mongodb;
     this.db = mongodb.db;
   }
+  public loadKey = (data: any): any => ({ _id: data._id });
+  public loadEnhance = (data: any): any => data;
 
   public async insertOne(value, options = null) {
     return this.collection.insertOne(value, options);

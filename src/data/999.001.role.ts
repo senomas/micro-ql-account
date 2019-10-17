@@ -1,5 +1,5 @@
 export = async ({ mongodb }) => {
-  const db = mongodb.db
+  const db = mongodb.db;
   const role = db.collection("role");
   await role.createIndex(
     { code: 1 },
@@ -9,4 +9,4 @@ export = async ({ mongodb }) => {
     { name: 1 },
     { unique: true }
   );
-}
+};

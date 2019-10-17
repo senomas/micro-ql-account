@@ -1,26 +1,46 @@
-require('source-map-support').install();
+import smap = require("source-map-support");
+smap.install();
+
 import 'reflect-metadata';
-import "./services/service";
+import './services/service';
 
 import { ApolloServer } from 'apollo-server-express';
 import express from 'express';
-import { buildSchema } from 'type-graphql';
+import { buildSchema, MiddlewareFn, MiddlewareInterface, NextFn, ResolverData } from 'type-graphql';
 
-import { logger, NODE_ENV } from './services/service';
-import { mongodb } from './services/mongodb';
-import { initRole } from './services/role';
-import { initUser } from './services/user';
-import { initMovie } from './services/movie';
 import { getUser } from './authentication';
 import { customAuthChecker } from './authorization';
 import { config } from './config';
 import { AuthResolver } from './resolvers/auth';
+import { MovieResolver } from './resolvers/movie';
 import { RoleResolver } from './resolvers/role';
 import { UserResolver } from './resolvers/user';
-import { MovieResolver } from './resolvers/movie';
+import { mongodb } from "./services/mongodb";
+import { initMovie } from './services/movie';
+import { initRole } from './services/role';
+import { logger, NODE_ENV } from './services/service';
+import { initUser } from './services/user';
 
 import fs = require("fs");
 import path = require("path");
+
+export const ResolveTime: MiddlewareFn = async ({ info }, next) => {
+  const start = Date.now();
+  await next();
+  const responseTime = Date.now() - start;
+  logger.info({ path: `${info.parentType.name}.${info.fieldName}`, responseTime }, 'resolve time');
+};
+
+class BasicLogging {
+  public requestDidStart(o) {
+    logger.info({ query: o.queryString, variables: o.variables }, 'graphql request');
+  }
+
+  public willSendResponse({ graphqlResponse }) {
+    logger.info({ gqlRes: graphqlResponse }, 'graphql response');
+  }
+}
+
 export async function bootstrap() {
   const schema = await buildSchema({
     resolvers: [AuthResolver, RoleResolver, UserResolver, MovieResolver],
@@ -51,9 +71,9 @@ export async function bootstrap() {
   for (const fn of data) {
     const fns = fn.split(".");
     const model = fns[2];
-    cver = parseInt(fns[0]);
+    cver = parseInt(fns[0], 10);
     if (cver <= version) {
-      logger.info({ model: model, cver, version, fileName: fn }, "skip");
+      logger.info({ model, cver, version, fileName: fn }, "skip");
     } else {
       if (NODE_ENV === "development" || NODE_ENV === "test") {
         if (!models[model]) {
@@ -66,18 +86,18 @@ export async function bootstrap() {
               throw err;
             }
           }
-          models[model] = true
+          models[model] = true;
         }
       }
       if (fn.endsWith(".js")) {
         const cfn = `./data/${fn.slice(0, -3)}`;
-        logger.info({ model: model, cver, fileName: cfn }, "import script");
+        logger.info({ model, cver, fileName: cfn }, "import script");
         await require(cfn)({ mongodb });
       } else if (fn.endsWith(".json")) {
-        logger.info({ model: model, cver, fileName: fn }, "load data");
-        const data = JSON.parse(fs.readFileSync(path.resolve("dist", "data", fn)).toString());
-        const res = await mongodb.models[model].load(data);
-        logger.info({ model: model, cver, fileName: fn, res }, "load data res");
+        logger.info({ model, cver, fileName: fn }, "load data");
+        const pdata = JSON.parse(fs.readFileSync(path.resolve("dist", "data", fn)).toString());
+        const res = await mongodb.models[model].load(pdata);
+        logger.info({ model, cver, fileName: fn, res }, "load data res");
       }
       logger.info({ version, cver, lcver }, "after update");
       if (cver < 900) {
@@ -92,17 +112,17 @@ export async function bootstrap() {
               }
             }, { upsert: true });
             if (ures.modifiedCount !== 1) {
-              delete ures.connection
-              delete ures.message
+              delete ures.connection;
+              delete ures.message;
               throw {
                 name: "UpdateError",
                 version,
                 cver,
                 lcver,
                 ures
-              }
+              };
             }
-            version = lcver;  
+            version = lcver;
           }
           lcver = cver;
         }
@@ -120,15 +140,15 @@ export async function bootstrap() {
       }
     }, { upsert: true });
     if (ures.modifiedCount !== 1) {
-      delete ures.connection
-      delete ures.message
+      delete ures.connection;
+      delete ures.message;
       throw {
         name: "UpdateError",
         version,
         lcver,
         cver,
         ures
-      }
+      };
     }
     version = cver;
   }
@@ -136,11 +156,20 @@ export async function bootstrap() {
   const server = new ApolloServer({
     schema,
     playground: true,
+    formatError: err => {
+      if (err.message && err.message.startsWith("Context creation failed: ")) {
+        err.message = err.message.substr(25);
+      }
+      return err;
+    },
     context: async ({ req }) => {
       const user = await getUser(req);
-      const remoteAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+      const remoteAddress = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
       return { user, headers: req.headers, remoteAddress };
-    }
+    },
+    extensions: [() => {
+      return new BasicLogging();
+    }]
   });
 
   const app = express();

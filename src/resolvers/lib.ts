@@ -1,19 +1,20 @@
-import { Query, Resolver, Authorized, Mutation, Arg, Int } from 'type-graphql';
+import { ObjectID } from "mongodb";
+import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from "type-graphql";
 
-import { mongodb } from '../services/mongodb';
-import { logger } from '../services/service';
-import { UpdateResponse, DeleteResponse } from '../schemas/lib';
+import { DeleteResponse, UpdateResponse } from "../schemas/lib";
+import { mongodb } from "../services/mongodb";
+import { logger } from "../services/service";
 
 export interface CreateBaseResolverOption {
-  suffix: string,
-  suffixPlurals?: string,
-  suffixCapitalize?: string,
-  suffixCapitalizePlurals?: string,
-  typeCls,
-  partialTypeCls,
-  addInput,
-  updateInput,
-  filterInput,
+  suffix: string;
+  suffixPlurals?: string;
+  suffixCapitalize?: string;
+  suffixCapitalizePlurals?: string;
+  typeCls;
+  partialTypeCls;
+  addInput;
+  updateInput;
+  filterInput;
 }
 
 export function createBaseResolver(opt: CreateBaseResolverOption) {
@@ -30,27 +31,29 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
   @Resolver({ isAbstract: true })
   abstract class BaseResolver {
     protected queryFilters: any = {
-      skip: () => { },
-      limit: () => { }
+      skip: () => {
+        // nop
+      },
+      limit: () => {
+        // nop
+      }
     };
 
-    protected query(filter) {
-      const query: any = {};
-      if (filter) {
-        for (const [k, v] of Object.entries(filter)) {
-          if (this.queryFilters[k]) {
-            this.queryFilters[k](query, v, k);
-          } else {
-            query[k] = v;
-          }
-        }
+    @Query(returns => opt.typeCls, { nullable: true, name: `${opt.suffix}` })
+    @Authorized([`${opt.suffix}.read`])
+    public async findByID(
+      @Arg("id", of => ID) id: string
+    ) {
+      const item = await mongodb.models[opt.suffix].findOne({ _id: new ObjectID(id) });
+      if (item) {
+        item.id = item._id;
       }
-      return query;
+      return item;
     }
 
     @Query(returns => opt.partialTypeCls, { nullable: true, name: `${opt.suffixPlurals}` })
     @Authorized([`${opt.suffix}.read`])
-    async find(
+    public async find(
       @Arg("skip", of => Int, { nullable: true }) skip: number,
       @Arg("limit", of => Int, { nullable: true }) limit: number,
       @Arg("filter", of => opt.filterInput, { nullable: true }) filter
@@ -80,7 +83,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Mutation(returns => opt.typeCls, { name: `add${opt.suffixCapitalize}` })
     @Authorized([`${opt.suffix}.create`])
-    async add(@Arg("data", of => opt.addInput) data) {
+    public async add(@Arg("data", of => opt.addInput) data) {
       const res = await mongodb.models[opt.suffix].insertOne(data);
       logger.info({ res }, `insert ${opt.suffix}`);
       return {
@@ -91,7 +94,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Mutation(returns => UpdateResponse, { name: `update${opt.suffixCapitalizePlurals}` })
     @Authorized([`${opt.suffix}.update`])
-    async updates(@Arg("filter", of => opt.filterInput) filter, @Arg("data", of => opt.updateInput) data): Promise<UpdateResponse> {
+    public async updates(@Arg("filter", of => opt.filterInput) filter, @Arg("data", of => opt.updateInput) data): Promise<UpdateResponse> {
       const query = this.query(filter);
       const updates = {
         $set: data
@@ -107,14 +110,28 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Mutation(returns => DeleteResponse, { name: `delete${opt.suffixCapitalizePlurals}` })
     @Authorized([`${opt.suffix}.delete`])
-    async deletes(@Arg("filter", of => opt.filterInput) filter): Promise<DeleteResponse> {
+    public async deletes(@Arg("filter", of => opt.filterInput) filter): Promise<DeleteResponse> {
       const query = this.query(filter);
       logger.info({ filter, query }, `delete ${opt.suffix} query`);
       const res = await mongodb.models[opt.suffix].deleteMany(query);
       logger.info({ res }, `delete ${opt.suffix}`);
       return {
         deleted: res.deletedCount
+      };
+    }
+
+    protected query(filter) {
+      const query: any = {};
+      if (filter) {
+        for (const [k, v] of Object.entries(filter)) {
+          if (this.queryFilters[k]) {
+            this.queryFilters[k](query, v, k);
+          } else {
+            query[k] = v;
+          }
+        }
       }
+      return query;
     }
   }
 

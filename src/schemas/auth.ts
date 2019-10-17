@@ -3,68 +3,74 @@ import { Field, ID, ObjectType } from "type-graphql";
 @ObjectType()
 export class Auth {
   @Field(type => String)
-  serverKey: string;
+  public serverKey: string;
 }
 
 @ObjectType()
 export class Commit {
   @Field()
-  hash: String;
+  public hash: string;
 
   @Field()
-  abbrevHash: String;
+  public abbrevHash: string;
 
   @Field()
-  subject: String;
+  public subject: string;
 
   @Field()
-  authorName: String;
+  public authorName: string;
 
   @Field()
-  authorDate: Date;
+  public authorDate: Date;
 }
 
 @ObjectType()
 export class ServerInfo {
   @Field()
-  host: string;
+  public host: string;
 
   @Field()
-  time: Date;
+  public time: Date;
 
   @Field()
-  buildTime: Date;
+  public buildTime: Date;
 
   @Field(type => [Commit])
-  commits: Commit[];
+  public commits: Commit[];
 }
 
 @ObjectType()
 export class Token {
   @Field(type => String)
-  seq: number;
+  public seq: number;
 
   @Field(type => String)
-  token: string;
+  public token: string;
 }
 
 @ObjectType()
 export class UserToken {
   @Field(type => Date, { nullable: true })
-  time: Date;
+  public time: Date;
 
   @Field(type => ID, { nullable: true })
-  clientKey: string;
+  public clientKey: string;
 
   @Field(type => String, { nullable: true })
-  xlogin: string;
+  public xlogin: string;
 
   @Field(type => String, { nullable: true })
-  name: string;
+  public name: string;
 
   @Field(type => [String], { nullable: true })
-  privileges: string[];
+  public privileges: string[];
+
+  @Field({ nullable: true })
+  public issuedAt: Date;
+
+  @Field({ nullable: true })
+  public expiredAt: Date;
 
   @Field(type => Token, { nullable: true })
-  token: Token;
+  public token: Token;
 }

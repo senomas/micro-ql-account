@@ -1,17 +1,17 @@
-import 'mocha';
+import "mocha";
 
-import { expect } from 'chai';
-import crypto from 'crypto';
-import { suite, test } from 'mocha-typescript';
+import { expect } from "chai";
+import crypto from "crypto";
+import { suite, test } from "mocha-typescript";
 
-import { BaseTest, values } from './base';
+import { BaseTest, values } from "./base";
 
 @suite
 export class LoginTest extends BaseTest {
 
   @test
   public async serverInfo() {
-    let res = await this.post(`{
+    const res = await this.post(`{
       accountInfo {
         host
         time,
@@ -128,6 +128,8 @@ export class LoginTest extends BaseTest {
         xlogin
         name
         privileges
+        issuedAt
+        expiredAt
         token {
           seq
           token
@@ -147,6 +149,8 @@ export class LoginTest extends BaseTest {
         xlogin
         name
         privileges
+        issuedAt
+        expiredAt
         token {
           seq
           token
@@ -159,24 +163,26 @@ export class LoginTest extends BaseTest {
     expect(res.body.data.me.privileges, res.log).to.eql([]);
   }
 
-  // @test
-  public async testExpiredToken() {
-    await new Promise(resolve => setTimeout(resolve, 2100));
+  @test
+  public async testExpiredSessionToken() {
     const res = await this.post(`{
       me {
         clientKey
         xlogin
         name
         privileges
+        issuedAt
+        expiredAt
         token {
           seq
           token
         }
       }
-    }`);
-    expect(res.status, res.log).to.eql(200);
-    expect(res.body, res.log).to.not.haveOwnProperty("errors");
-    expect(res.body.data.me.token, res.log).to.not.eql(null);
+    }`, { token: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImF1dGgifQ.eyJjayI6IkJQZURZL0xRRTk1b0dMYitTMDU0bWJYSHduNzJ0eUQ1N2tXbGNMQUM2cmI3dzVhRXEzRWFDZlZ5YzF5dnd5U1FHUGNUTlRqMzlPZ2diYm40RFRRektXZz0iLCJ4bCI6IjhQbjNDNmM9IiwibiI6IkFkbWluIiwicCI6WyJ1c2VyLnJlYWQiLCJ1c2VyLnVwZGF0ZSIsInVzZXIuYWN0aXZhdGUiLCJ1c2VyLmRlYWN0aXZhdGUiLCJyb2xlLmNyZWF0ZSIsInJvbGUucmVhZCIsInJvbGUudXBkYXRlIiwicm9sZS5kZWxldGUiLCJtb3ZpZS5jcmVhdGUiLCJtb3ZpZS5yZWFkIiwibW92aWUudXBkYXRlIiwibW92aWUuZGVsZXRlIl0sImlhdCI6MTU3MTE4ODg3MywiZXhwIjoxNTcxMTg4ODc4fQ.QZsB1IKho3zq2WG_VFE7ncOWadBiFFyVvoCWrG2kdNbBM96ACZXQT0gomC6w1BGGd_EIkDomKUGkzfd5UIGmoQ" });
+    expect(res.status, res.log).to.eql(400);
+    expect(res.body, res.log).to.haveOwnProperty("errors");
+    expect(res.body.errors[0], res.log).to.haveOwnProperty("extensions");
+    expect(res.body.errors[0].extensions.code, res.log).to.eql("SessionExpiredError");
   }
 
   @test
@@ -194,5 +200,28 @@ export class LoginTest extends BaseTest {
     await new Promise(resolve => setTimeout(resolve, 2100));
     await this.postLogin("admin", "dodol123");
   }
-}
 
+  @test
+  public async testExpiredToken() {
+    await this.postLogin("admin", "dodol123", 1);
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    const res = await this.post(`{
+      me {
+        clientKey
+        xlogin
+        name
+        privileges
+        issuedAt
+        expiredAt
+        token {
+          seq
+          token
+        }
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(res.body.data.me.token, res.log).to.not.eql(null);
+    expect(res.body.data.me.token.token, res.log).to.not.eql(null);
+  }
+}

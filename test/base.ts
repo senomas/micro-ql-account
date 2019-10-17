@@ -1,8 +1,8 @@
 import "mocha";
 
+import * as bunyan from "bunyan";
 import { expect } from "chai";
 import crypto from "crypto";
-import * as bunyan from "bunyan";
 
 import chai = require("chai");
 import chaiHttp = require("chai-http");
@@ -54,7 +54,7 @@ export class BaseTest {
   protected http = (chai as any).request(process.env.TEST_SERVER);
   protected config: any = config;
 
-  public async postLogin(username, password) {
+  public async postLogin(username, password, expiry = null) {
     values.ecdh = ecdh;
 
     let res = await this.post(
@@ -133,7 +133,7 @@ export class BaseTest {
     res = await this.post(
       `{
       auth(clientKey: "${ecdh.getPublicKey().toString("base64")}") {
-        login(xlogin: "${xlogin}", xhpassword: "${xhpassword}") {
+        login(xlogin: "${xlogin}", xhpassword: "${xhpassword}"${expiry ? `, expiry: ${expiry}` : ""}) {
           seq token
         }
       }

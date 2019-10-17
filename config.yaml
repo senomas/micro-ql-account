@@ -18,7 +18,7 @@ auth:
   # sessionExpiry: 2
   singleSession: false
   tokenExpiry: 5
-  sessionExpiry: 900
+  sessionExpiry: 30
   pbkdf2:
     iterations: 3573
     hashBytes: 64
