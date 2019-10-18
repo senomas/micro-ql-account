@@ -7,7 +7,6 @@ import { logger } from "./services/service";
 
 export async function getUser(req) {
   let token = req.headers["x-access-token"] || req.headers.authorization;
-  logger.info({ token }, "auth token");
   if (token && token !== "") {
     if (token.startsWith("Bearer ")) {
       token = token.slice(7, token.length);
@@ -27,7 +26,6 @@ export async function parseToken(token) {
     logger.error({ token, err }, "invalid token header");
     throw new AuthenticationError("InvalidTokenHeader");
   }
-  logger.info({ token, header }, "jwt authentication");
   const keyid = header.kid;
   if (!(config.keys[keyid] && config.keys[keyid].key)) {
     throw new AuthenticationError("UnknownKeyID");

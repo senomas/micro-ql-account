@@ -3,11 +3,9 @@ import { logger } from "./service";
 
 export class MongoModel {
   public db: Db;
-  private mongodb: Mongodb;
 
   // tslint:disable-next-line
-  constructor(mongodb: Mongodb, public collection: Collection) {
-    this.mongodb = mongodb;
+  constructor(private mongodb: Mongodb, public collection: Collection) {
     this.db = mongodb.db;
   }
   public loadKey = (data: any): any => ({ _id: data._id });

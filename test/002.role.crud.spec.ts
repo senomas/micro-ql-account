@@ -91,12 +91,13 @@ export class RoleCrudTest extends BaseTest {
     }`);
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    values.id = res.body.data.addRole.id;
   }
 
   @test
   public async updateRole() {
     const res = await this.post(`mutation {
-      updateRoles(filter: { code: "demo" }, data: {name: "Demox", privileges: ["demox"]}) {
+      updateRoles(filter: { id: "${values.id}" }, data: {name: "Demox", privileges: ["demox"]}) {
         matched
         modified
       }

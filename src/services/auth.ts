@@ -34,6 +34,7 @@ export class AuthService {
   }
 
   public async salt(xlogin: string): Promise<string> {
+    // FIXME delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     const aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
@@ -57,6 +58,7 @@ export class AuthService {
   }
 
   public async login(xlogin: string, xhpassword: string, expiry: number, info: any = {}): Promise<Token> {
+    // FIXME delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     let aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
@@ -146,7 +148,6 @@ export class AuthService {
     const header = JSON.parse(
       Buffer.from(token.split(".")[0], "base64").toString("utf8")
     );
-    logger.info({ token, header }, "jwt refresh");
     const keyid = header.kid;
     if (!(config.keys[keyid] && config.keys[keyid].key)) {
       throw new ApolloUnknownKeyIDError({
@@ -162,7 +163,6 @@ export class AuthService {
         expired: new Date(expired)
       });
     }
-    logger.info({ token, header, refreshObj }, "jwt refresh");
     const xlogin = refreshObj.xl;
     const aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
     const login = Buffer.concat([
@@ -170,71 +170,72 @@ export class AuthService {
       aesd.final()
     ]).toString("utf8");
     const user = await mongodb.models.user.findOne({ login });
-    if (config.auth.singleSession) {
-      let session = null;
-      if (user.audits) {
-        if (config.auth.sessionExpiry) {
-          const now = Date.now();
-          for (let i = user.audits.length - 1; i >= 0; i--) {
-            const audit = user.audits[i];
-            if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
-              session = audit;
-            } else if (audit.action === "logout" || audit.action === "logoutForced") {
-              session = null;
+    logger.info({ login, user }, "get user");
+    if (user) {
+      if (config.auth.singleSession) {
+        let session = null;
+        if (user.audits) {
+          if (config.auth.sessionExpiry) {
+            const now = Date.now();
+            for (let i = user.audits.length - 1; i >= 0; i--) {
+              const audit = user.audits[i];
+              if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
+                session = audit;
+              } else if (audit.action === "logout" || audit.action === "logoutForced") {
+                session = null;
+              }
             }
-          }
-        } else {
-          for (let i = user.audits.length - 1; i >= 0; i--) {
-            const audit = user.audits[i];
-            if (audit.action === "login") {
-              session = audit;
-            } else if (audit.action === "logout" || audit.action === "logoutForced") {
-              session = null;
+          } else {
+            for (let i = user.audits.length - 1; i >= 0; i--) {
+              const audit = user.audits[i];
+              if (audit.action === "login") {
+                session = audit;
+              } else if (audit.action === "logout" || audit.action === "logoutForced") {
+                session = null;
+              }
             }
           }
         }
-      }
-      if (session) {
-        if (session.clientKey !== refreshObj.ck) {
+        if (session) {
+          if (session.clientKey !== refreshObj.ck) {
+            throw new ApolloInvalidClientKeyError();
+          }
+        } else {
           throw new ApolloInvalidClientKeyError();
         }
       } else {
-        throw new ApolloInvalidClientKeyError();
-      }
-    } else {
-      const sessions = {};
-      if (user.audits) {
-        if (config.auth.sessionExpiry) {
-          const now = Date.now();
-          for (let i = user.audits.length - 1; i >= 0; i--) {
-            const audit = user.audits[i];
-            if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
-              sessions[audit.clientKey] = audit;
-            } else if (audit.action === "logout" || audit.action === "logoutForced") {
-              delete sessions[audit.clientKey];
+        const sessions = {};
+        if (user.audits) {
+          if (config.auth.sessionExpiry) {
+            const now = Date.now();
+            for (let i = user.audits.length - 1; i >= 0; i--) {
+              const audit = user.audits[i];
+              if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
+                sessions[audit.clientKey] = audit;
+              } else if (audit.action === "logout" || audit.action === "logoutForced") {
+                delete sessions[audit.clientKey];
+              }
             }
-          }
-        } else {
-          for (let i = user.audits.length - 1; i >= 0; i--) {
-            const audit = user.audits[i];
-            if (audit.action === "login") {
-              sessions[audit.clientKey] = audit;
-            } else if (audit.action === "logout" || audit.action === "logoutForced") {
-              delete sessions[audit.clientKey];
+          } else {
+            for (let i = user.audits.length - 1; i >= 0; i--) {
+              const audit = user.audits[i];
+              if (audit.action === "login") {
+                sessions[audit.clientKey] = audit;
+              } else if (audit.action === "logout" || audit.action === "logoutForced") {
+                delete sessions[audit.clientKey];
+              }
             }
           }
         }
+        if (!sessions[refreshObj.ck]) {
+          throw new ApolloInvalidClientKeyError();
+        }
       }
-      if (!sessions[refreshObj.ck]) {
-        throw new ApolloInvalidClientKeyError();
-      }
-    }
-    logger.info({ login, user }, "get user");
-    if (user) {
       return await this.generateToken(user, xlogin);
     }
-    throw new ApolloInvalidClientKeyError({
-      token
+    logger.info({ xlogin, login }, "invalid login");
+    throw new ApolloUserNotFoundError({
+      xlogin
     });
   }
 

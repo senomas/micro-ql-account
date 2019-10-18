@@ -10,6 +10,7 @@ export interface CreateBaseResolverOption {
   suffixPlurals?: string;
   suffixCapitalize?: string;
   suffixCapitalizePlurals?: string;
+  queryFilters?: null;
   typeCls;
   partialTypeCls;
   addInput;
@@ -30,7 +31,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
   @Resolver({ isAbstract: true })
   abstract class BaseResolver {
-    protected queryFilters: any = {
+    protected queryFilters: any = opt.queryFilters || {
       skip: () => {
         // nop
       },
@@ -84,6 +85,8 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
     @Mutation(returns => opt.typeCls, { name: `add${opt.suffixCapitalize}` })
     @Authorized([`${opt.suffix}.create`])
     public async add(@Arg("data", of => opt.addInput) data) {
+      // FIXME delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const res = await mongodb.models[opt.suffix].insertOne(data);
       logger.info({ res }, `insert ${opt.suffix}`);
       return {
@@ -95,6 +98,8 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
     @Mutation(returns => UpdateResponse, { name: `update${opt.suffixCapitalizePlurals}` })
     @Authorized([`${opt.suffix}.update`])
     public async updates(@Arg("filter", of => opt.filterInput) filter, @Arg("data", of => opt.updateInput) data): Promise<UpdateResponse> {
+      // FIXME delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const query = this.query(filter);
       const updates = {
         $set: data
@@ -111,6 +116,8 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
     @Mutation(returns => DeleteResponse, { name: `delete${opt.suffixCapitalizePlurals}` })
     @Authorized([`${opt.suffix}.delete`])
     public async deletes(@Arg("filter", of => opt.filterInput) filter): Promise<DeleteResponse> {
+      // FIXME delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const query = this.query(filter);
       logger.info({ filter, query }, `delete ${opt.suffix} query`);
       const res = await mongodb.models[opt.suffix].deleteMany(query);
@@ -126,6 +133,8 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
         for (const [k, v] of Object.entries(filter)) {
           if (this.queryFilters[k]) {
             this.queryFilters[k](query, v, k);
+          } else if (k === "id") {
+            query._id = new ObjectID(v);
           } else {
             query[k] = v;
           }

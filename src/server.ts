@@ -58,11 +58,14 @@ export async function bootstrap() {
   const data = fs.readdirSync(path.resolve("./dist/data"));
   data.sort();
   const versionRow = (await mongodb.db.collection("version").findOne({ code: "populate" }));
-  let version = versionRow && versionRow.version !== null ? versionRow.version : -1;
-  if (!versionRow) {
+  let version;
+  if (versionRow) {
+    version = versionRow.version;
+  } else {
+    version = -1;
     await mongodb.db.collection("version").insertOne({
       code: "populate",
-      version: -1
+      version
     });
   }
   let lcver = version;
@@ -75,6 +78,31 @@ export async function bootstrap() {
     if (cver <= version) {
       logger.info({ model, cver, version, fileName: fn }, "skip");
     } else {
+      if (lcver < 900 && cver !== lcver) {
+        if (cver > 0 && lcver > version) {
+          const ures = await mongodb.db.collection("version").updateOne({
+            code: "populate",
+            version
+          }, {
+            $set: {
+              version: lcver
+            }
+          }, { upsert: true });
+          if (ures.modifiedCount !== 1) {
+            delete ures.connection;
+            delete ures.message;
+            throw {
+              name: "UpdateError",
+              version,
+              cver,
+              lcver,
+              ures
+            };
+          }
+          version = lcver;
+        }
+        lcver = cver;
+      }
       if (NODE_ENV === "development" || NODE_ENV === "test") {
         if (!models[model]) {
           try {
@@ -100,33 +128,6 @@ export async function bootstrap() {
         logger.info({ model, cver, fileName: fn, res }, "load data res");
       }
       logger.info({ version, cver, lcver }, "after update");
-      if (cver < 900) {
-        if (cver !== lcver) {
-          if (cver > 0 && lcver > version) {
-            const ures = await mongodb.db.collection("version").updateOne({
-              code: "populate",
-              version
-            }, {
-              $set: {
-                version: lcver
-              }
-            }, { upsert: true });
-            if (ures.modifiedCount !== 1) {
-              delete ures.connection;
-              delete ures.message;
-              throw {
-                name: "UpdateError",
-                version,
-                cver,
-                lcver,
-                ures
-              };
-            }
-            version = lcver;
-          }
-          lcver = cver;
-        }
-      }
     }
   }
   logger.info({ cver, version }, "after updates");

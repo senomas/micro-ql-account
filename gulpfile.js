@@ -46,6 +46,10 @@ async function dockerDown() {
   });
 }
 
+async function kill() {
+  await killPorts([5000])
+}
+
 async function run() {
   await dockerUp();
   await build();
@@ -122,7 +126,7 @@ async function fix() {
 }
 async function test() {
   await fix();
-  await killPorts([5000])
+  await kill();
   await shell.exec("rm -rf log dist", {
     async: false
   });
@@ -168,5 +172,6 @@ module.exports = {
   dockerUp,
   dockerDown,
   run,
+  kill,
   test
 };
