@@ -5,7 +5,7 @@
 
 input AddMovieInput {
   title: String!
-  year: Float!
+  year: Int!
   cast: [String!]
   genres: [String!]
 }
@@ -51,7 +51,7 @@ input FilterMovieInput {
   id: ID
   title: String
   titleRegex: String
-  year: Float
+  year: Int
 }
 
 input FilterRoleInput {
@@ -71,7 +71,7 @@ input FilterUserInput {
 type Movie {
   id: String!
   title: String!
-  year: Float!
+  year: Int!
   cast: [String!]
   genres: [String!]
 }
@@ -138,7 +138,7 @@ type Token {
 
 input UpdateMovieInput {
   title: String!
-  year: Float!
+  year: Int!
   cast: [String!]
   genres: [String!]
 }

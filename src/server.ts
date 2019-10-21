@@ -176,8 +176,10 @@ export async function bootstrap() {
   const app = express();
   server.applyMiddleware({ app });
 
-  const serverInfo = await app.listen(process.env.PORT || 4000);
-  logger.info({ serverInfo }, "Server is running");
+  const port = parseInt(process.env.PORT, 10 || 4000);
+  const bindAddress = process.env.BIND_ADDRESS || "0.0.0.0";
+  const serverInfo = await app.listen(port, bindAddress);
+  logger.info({ port, bindAddress, ...serverInfo }, "Server is running");
 }
 
 bootstrap().catch(err => {
