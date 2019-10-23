@@ -1,4 +1,5 @@
 import { Collection, Cursor, Db, MongoClient } from "mongodb";
+
 import { logger } from "./service";
 
 export class MongoModel {

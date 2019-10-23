@@ -1,6 +1,7 @@
 import { Resolver } from "type-graphql";
 
 import { AddUserInput, FilterUserInput, PartialUser, UpdateUserInput, User } from "../schemas/user";
+
 import { createBaseResolver } from "./lib";
 
 @Resolver(of => User)

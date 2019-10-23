@@ -9,6 +9,8 @@ import {
   Resolver,
   Root,
 } from "type-graphql";
+
+import { getUser } from "../authentication";
 import { Auth, ServerInfo, Token, UserToken } from "../schemas/auth";
 import { AuthService } from "../services/auth";
 import { logger } from "../services/service";
@@ -48,7 +50,7 @@ export class AuthResolver {
 
   @Query(returns => UserToken, { nullable: true })
   public async me(@Ctx() ctx, @Arg("ts", { nullable: true }) ts: string): Promise<UserToken> {
-    logger.info({ ctx, ts }, "me");
+    logger.info({ ctx }, "me");
     if (ctx.user) {
       return {
         time: new Date(),

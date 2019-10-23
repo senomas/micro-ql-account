@@ -1,5 +1,4 @@
 import "mocha";
-
 import { expect } from "chai";
 import crypto from "crypto";
 import { suite, test } from "mocha-typescript";

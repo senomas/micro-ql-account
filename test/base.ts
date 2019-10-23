@@ -1,9 +1,7 @@
 import "mocha";
-
 import * as bunyan from "bunyan";
 import { expect } from "chai";
 import crypto from "crypto";
-
 import chai = require("chai");
 import chaiHttp = require("chai-http");
 import fs = require("fs");

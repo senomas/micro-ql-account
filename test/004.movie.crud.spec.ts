@@ -1,7 +1,7 @@
 import "mocha";
-
 import { expect } from "chai";
 import { suite, test } from "mocha-typescript";
+
 import { BaseTest, values } from "./base";
 
 @suite

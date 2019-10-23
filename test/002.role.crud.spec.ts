@@ -1,7 +1,7 @@
 import "mocha";
-
 import { expect } from "chai";
 import { suite, test } from "mocha-typescript";
+
 import { BaseTest, values } from "./base";
 
 @suite
@@ -15,6 +15,13 @@ export class RoleCrudTest extends BaseTest {
   @test
   public async testListRoles() {
     const res = await this.post(`{
+      me(ts: "${Date.now() / 1000}") {
+        name
+        token {
+          seq
+          token
+        }
+      }
       roles(skip: 1) {
         total
         items {

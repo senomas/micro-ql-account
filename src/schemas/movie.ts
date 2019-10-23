@@ -1,5 +1,6 @@
 import { Length, MaxLength } from "class-validator";
-import { Field, ID, InputType, ObjectType, Int } from "type-graphql";
+import { Field, ID, InputType, Int, ObjectType } from "type-graphql";
+
 import { Partial } from "./lib";
 
 @ObjectType()

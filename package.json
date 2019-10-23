@@ -25,6 +25,7 @@
     "ext": "ts"
   },
   "devDependencies": {
+    "@netflix/tslint-config": "^1.0.1",
     "chai": "^4.2.0",
     "chai-graphql": "^4.0.0",
     "chai-http": "^4.3.0",

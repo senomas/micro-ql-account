@@ -45,6 +45,8 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
     public async findByID(
       @Arg("id", of => ID) id: string
     ) {
+      // FIXME delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const item = await mongodb.models[opt.suffix].findOne({ _id: new ObjectID(id) });
       if (item) {
         item.id = item._id;
@@ -97,7 +99,10 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Mutation(returns => UpdateResponse, { name: `update${opt.suffixCapitalizePlurals}` })
     @Authorized([`${opt.suffix}.update`])
-    public async updates(@Arg("filter", of => opt.filterInput) filter, @Arg("data", of => opt.updateInput) data): Promise<UpdateResponse> {
+    public async updates(
+      @Arg("filter", of => opt.filterInput) filter,
+      @Arg("data", of => opt.updateInput) data
+    ): Promise<UpdateResponse> {
       // FIXME delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       const query = this.query(filter);

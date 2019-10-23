@@ -1,7 +1,8 @@
-import { config } from "../config";
-import { mongodb } from "./mongodb";
-
 import crypto = require("crypto");
+
+import { config } from "../config";
+
+import { mongodb } from "./mongodb";
 
 export async function initUser() {
   const user = await mongodb.create("user");

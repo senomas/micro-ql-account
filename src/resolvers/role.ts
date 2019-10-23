@@ -1,6 +1,7 @@
 import { Resolver } from "type-graphql";
 
 import { AddRoleInput, FilterRoleInput, PartialRole, Role, UpdateRoleInput } from "../schemas/role";
+
 import { createBaseResolver } from "./lib";
 
 @Resolver(of => Role)

@@ -1,5 +1,4 @@
 import "mocha";
-
 import { expect } from "chai";
 import crypto from "crypto";
 import { suite, test } from "mocha-typescript";
@@ -178,7 +177,10 @@ export class LoginTest extends BaseTest {
           token
         }
       }
-    }`, { token: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImF1dGgifQ.eyJjayI6IkJQZURZL0xRRTk1b0dMYitTMDU0bWJYSHduNzJ0eUQ1N2tXbGNMQUM2cmI3dzVhRXEzRWFDZlZ5YzF5dnd5U1FHUGNUTlRqMzlPZ2diYm40RFRRektXZz0iLCJ4bCI6IjhQbjNDNmM9IiwibiI6IkFkbWluIiwicCI6WyJ1c2VyLnJlYWQiLCJ1c2VyLnVwZGF0ZSIsInVzZXIuYWN0aXZhdGUiLCJ1c2VyLmRlYWN0aXZhdGUiLCJyb2xlLmNyZWF0ZSIsInJvbGUucmVhZCIsInJvbGUudXBkYXRlIiwicm9sZS5kZWxldGUiLCJtb3ZpZS5jcmVhdGUiLCJtb3ZpZS5yZWFkIiwibW92aWUudXBkYXRlIiwibW92aWUuZGVsZXRlIl0sImlhdCI6MTU3MTE4ODg3MywiZXhwIjoxNTcxMTg4ODc4fQ.QZsB1IKho3zq2WG_VFE7ncOWadBiFFyVvoCWrG2kdNbBM96ACZXQT0gomC6w1BGGd_EIkDomKUGkzfd5UIGmoQ" });
+    }`, {
+      token:
+        "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImF1dGgifQ.eyJjayI6IkJQZURZL0xRRTk1b0dMYitTMDU0bWJYSHduNzJ0eUQ1N2tXbGNMQUM2cmI3dzVhRXEzRWFDZlZ5YzF5dnd5U1FHUGNUTlRqMzlPZ2diYm40RFRRektXZz0iLCJ4bCI6IjhQbjNDNmM9IiwibiI6IkFkbWluIiwicCI6WyJ1c2VyLnJlYWQiLCJ1c2VyLnVwZGF0ZSIsInVzZXIuYWN0aXZhdGUiLCJ1c2VyLmRlYWN0aXZhdGUiLCJyb2xlLmNyZWF0ZSIsInJvbGUucmVhZCIsInJvbGUudXBkYXRlIiwicm9sZS5kZWxldGUiLCJtb3ZpZS5jcmVhdGUiLCJtb3ZpZS5yZWFkIiwibW92aWUudXBkYXRlIiwibW92aWUuZGVsZXRlIl0sImlhdCI6MTU3MTE4ODg3MywiZXhwIjoxNTcxMTg4ODc4fQ.QZsB1IKho3zq2WG_VFE7ncOWadBiFFyVvoCWrG2kdNbBM96ACZXQT0gomC6w1BGGd_EIkDomKUGkzfd5UIGmoQ"
+    });
     expect(res.status, res.log).to.eql(400);
     expect(res.body, res.log).to.haveOwnProperty("errors");
     expect(res.body.errors[0], res.log).to.haveOwnProperty("extensions");

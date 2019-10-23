@@ -2,8 +2,8 @@ import * as bunyan from "bunyan";
 import crypto from "crypto";
 import * as fs from "fs";
 import * as os from "os";
-
 import { ApolloError } from "apollo-server-core";
+
 import { config, keyEncoder } from "../config";
 
 export const NODE_ENV = (process.env.NODE_ENV || "production").toLowerCase();

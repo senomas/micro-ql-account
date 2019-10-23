@@ -1,12 +1,18 @@
 import { AuthenticationError } from "apollo-server-core";
 import * as jwt from "jsonwebtoken";
 import { ForbiddenError } from "type-graphql";
+
 import { config } from "./config";
 import { AuthService } from "./services/auth";
 import { logger } from "./services/service";
 
 export async function getUser(req) {
-  let token = req.headers["x-access-token"] || req.headers.authorization;
+  let token;
+  if (req.headers) {
+    token = req.headers["x-access-token"] || req.headers.authorization;
+  } else {
+    token = req;
+  }
   if (token && token !== "") {
     if (token.startsWith("Bearer ")) {
       token = token.slice(7, token.length);

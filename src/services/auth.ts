@@ -3,6 +3,7 @@ import * as jwt from "jsonwebtoken";
 
 import { config } from "../config";
 import { Token } from "../schemas/auth";
+
 import { mongodb } from "./mongodb";
 import { accountKey, ApolloInvalidClientKeyError, ApolloInvalidPasswordError, ApolloMultipleSessionError, ApolloSessionExpiredError, ApolloUnknownKeyIDError, ApolloUserNotFoundError, logger } from "./service";
 
@@ -42,7 +43,6 @@ export class AuthService {
       aesd.final()
     ]).toString("utf8");
     const user = await mongodb.models.user.findOne({ login });
-    logger.info({ login, user }, "get user");
     if (user) {
       const aes = crypto.createCipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
       return Buffer.concat([
@@ -66,7 +66,6 @@ export class AuthService {
       aesd.final()
     ]).toString("utf8");
     const user = await mongodb.models.user.findOne({ login });
-    logger.info({ login, user }, "get user");
     if (user) {
       aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
       const hpasswordInput = Buffer.concat([
@@ -80,7 +79,10 @@ export class AuthService {
             const now = Date.now();
             for (let i = user.audits.length - 1; i >= 0; i--) {
               const audit = user.audits[i];
-              if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
+              if (
+                audit.action === "login" &&
+                (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now
+              ) {
                 sessions[audit.clientKey] = audit;
               } else if (audit.action === "logout" || audit.action === "logoutForced") {
                 delete sessions[audit.clientKey];
@@ -170,7 +172,6 @@ export class AuthService {
       aesd.final()
     ]).toString("utf8");
     const user = await mongodb.models.user.findOne({ login });
-    logger.info({ login, user }, "get user");
     if (user) {
       if (config.auth.singleSession) {
         let session = null;
@@ -179,7 +180,10 @@ export class AuthService {
             const now = Date.now();
             for (let i = user.audits.length - 1; i >= 0; i--) {
               const audit = user.audits[i];
-              if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
+              if (
+                audit.action === "login" &&
+                (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now
+              ) {
                 session = audit;
               } else if (audit.action === "logout" || audit.action === "logoutForced") {
                 session = null;
@@ -210,7 +214,10 @@ export class AuthService {
             const now = Date.now();
             for (let i = user.audits.length - 1; i >= 0; i--) {
               const audit = user.audits[i];
-              if (audit.action === "login" && (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now) {
+              if (
+                audit.action === "login" &&
+                (new Date(audit.time).getTime() + config.auth.sessionExpiry * 1000) > now
+              ) {
                 sessions[audit.clientKey] = audit;
               } else if (audit.action === "logout" || audit.action === "logoutForced") {
                 delete sessions[audit.clientKey];
@@ -246,7 +253,6 @@ export class AuthService {
       aesd.final()
     ]).toString("utf8");
     const user = await mongodb.models.user.findOne({ login });
-    logger.info({ login, user }, "get user");
     if (user) {
       const res = await mongodb.models.user.updateOne({ login }, {
         $push: {
@@ -283,7 +289,6 @@ export class AuthService {
         acc.push(...role.privileges);
         return acc;
       }, []);
-    logger.info({ privileges, roles: user.roles }, "get privileges");
     const token = jwt.sign({
       ck: this.clientKey,
       xl: xlogin,

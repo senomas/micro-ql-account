@@ -1,6 +1,7 @@
 import { Resolver } from "type-graphql";
 
 import { AddMovieInput, FilterMovieInput, Movie, PartialMovie, UpdateMovieInput } from "../schemas/movie";
+
 import { createBaseResolver } from "./lib";
 
 @Resolver(of => Movie)

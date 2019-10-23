@@ -1,12 +1,10 @@
 import smap = require("source-map-support");
-smap.install();
-
 import 'reflect-metadata';
-import './services/service';
-
 import { ApolloServer } from 'apollo-server-express';
 import express from 'express';
 import { buildSchema, MiddlewareFn, MiddlewareInterface, NextFn, ResolverData } from 'type-graphql';
+import fs = require("fs");
+import path = require("path");
 
 import { getUser } from './authentication';
 import { customAuthChecker } from './authorization';
@@ -20,9 +18,8 @@ import { initMovie } from './services/movie';
 import { initRole } from './services/role';
 import { logger, NODE_ENV } from './services/service';
 import { initUser } from './services/user';
+smap.install();
 
-import fs = require("fs");
-import path = require("path");
 
 export const ResolveTime: MiddlewareFn = async ({ info }, next) => {
   const start = Date.now();
