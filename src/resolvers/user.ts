@@ -1,6 +1,6 @@
 import { Resolver } from "type-graphql";
 
-import { AddUserInput, FilterUserInput, PartialUser, UpdateUserInput, User } from "../schemas/user";
+import { AddUserInput, FilterUserInput, PartialUser, UpdateUserInput, User, OrderByUserInput } from "../schemas/user";
 
 import { createBaseResolver } from "./lib";
 
@@ -10,7 +10,8 @@ export class UserResolver extends createBaseResolver({
   typeCls: User,
   partialTypeCls: PartialUser,
   filterInput: FilterUserInput,
-  addInput: AddUserInput,
+  orderByInput: OrderByUserInput,
+  createInput: AddUserInput,
   updateInput: UpdateUserInput
 }) {
   constructor() {

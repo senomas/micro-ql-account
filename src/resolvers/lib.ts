@@ -1,9 +1,9 @@
 import { ObjectID } from "mongodb";
 import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from "type-graphql";
 
-import { DeleteResponse, UpdateResponse } from "../schemas/lib";
+import { DeleteResponse, UpdateResponse, OrderByType } from "../schemas/lib";
 import { mongodb } from "../services/mongodb";
-import { logger } from "../services/service";
+import { logger, ApolloDuplicateEntryError } from "../services/service";
 
 export interface CreateBaseResolverOption {
   suffix: string;
@@ -13,10 +13,13 @@ export interface CreateBaseResolverOption {
   queryFilters?: null;
   typeCls;
   partialTypeCls;
-  addInput;
+  createInput;
   updateInput;
   filterInput;
+  orderByInput;
 }
+
+const regexDupKey = /^E11000 duplicate key error collection: (\w+\.\w+) index: (\w+) dup key: (.+)$/;
 
 export function createBaseResolver(opt: CreateBaseResolverOption) {
   if (!opt.suffixPlurals) {
@@ -59,12 +62,21 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
     public async find(
       @Arg("skip", of => Int, { nullable: true }) skip: number,
       @Arg("limit", of => Int, { nullable: true }) limit: number,
-      @Arg("filter", of => opt.filterInput, { nullable: true }) filter
+      @Arg("filter", of => opt.filterInput, { nullable: true }) filter,
+      @Arg("orderBy", of => [opt.orderByInput], { nullable: true }) orderBy
     ) {
       const query = this.query(filter);
-      logger.info({ filter, query }, `${opt.suffix} query`);
+      logger.info({ skip, limit, filter, orderBy, query }, `${opt.suffix} query`);
       const total = await mongodb.models[opt.suffix].count(query);
       const cursor = mongodb.models[opt.suffix].find(query);
+      if (orderBy && orderBy.length > 0) {
+        const sort = {};
+        for (const ob of orderBy) {
+          sort[ob.field] = ob.type === OrderByType.asc ? 1 : -1;
+        }
+        logger.info({ orderBy, sort }, `${opt.suffix} orderBy`);
+        cursor.sort(sort);
+      }
       if (skip) {
         cursor.skip(skip);
       }
@@ -84,17 +96,31 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
       };
     }
 
-    @Mutation(returns => opt.typeCls, { name: `add${opt.suffixCapitalize}` })
+    @Mutation(returns => opt.typeCls, { name: `create${opt.suffixCapitalize}` })
     @Authorized([`${opt.suffix}.create`])
-    public async add(@Arg("data", of => opt.addInput) data) {
+    public async create(@Arg("data", of => opt.createInput) data) {
       // FIXME delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const res = await mongodb.models[opt.suffix].insertOne(data);
-      logger.info({ res }, `insert ${opt.suffix}`);
-      return {
-        id: res.insertedId,
-        ...data
-      };
+      try {
+        const res = await mongodb.models[opt.suffix].insertOne(data);
+        logger.info({ res }, `insert ${opt.suffix}`);
+        return {
+          id: res.insertedId,
+          ...data
+        };
+      } catch (err) {
+        if (err && err.message) {
+          const m = regexDupKey.exec(err.message);
+          if (m && m.length === 4) {
+            throw new ApolloDuplicateEntryError({
+              model: m[1],
+              index: m[2],
+              value: m[3]
+            });
+          }
+        }
+        throw err;
+      }
     }
 
     @Mutation(returns => UpdateResponse, { name: `update${opt.suffixCapitalizePlurals}` })

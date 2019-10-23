@@ -38,6 +38,32 @@ export class RoleCrudTest extends BaseTest {
   }
 
   @test
+  public async testListRolesOrderBy() {
+    const res = await this.post(`{
+      me(ts: "${Date.now() / 1000}") {
+        name
+        token {
+          seq
+          token
+        }
+      }
+      roles(orderBy: { field: name, type: desc }) {
+        total
+        items {
+          id
+          code
+          name
+          privileges
+        }
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.not.haveOwnProperty("errors");
+    expect(res.body.data.roles.items[0].code, res.log).to.eql("staff");
+    values.items = res.body.data.roles.items;
+  }
+
+  @test
   public async testFindByID() {
     const res = await this.post(`{
       role(id: "${values.items[0].id}") {
@@ -89,7 +115,7 @@ export class RoleCrudTest extends BaseTest {
   @test
   public async insertNewRole() {
     const res = await this.post(`mutation {
-      addRole(data: {code: "demo", name: "Demo", privileges: ["demo"]}) {
+      createRole(data: {code: "demo", name: "Demo", privileges: ["demo"]}) {
         id
         code
         name
@@ -98,7 +124,22 @@ export class RoleCrudTest extends BaseTest {
     }`);
     expect(res.status, res.log).to.eql(200);
     expect(res.body, res.log).to.not.haveOwnProperty("errors");
-    values.id = res.body.data.addRole.id;
+    values.id = res.body.data.createRole.id;
+  }
+
+  @test
+  public async insertDuplicateRole() {
+    const res = await this.post(`mutation {
+      createRole(data: {code: "demo", name: "Demo", privileges: ["demo"]}) {
+        id
+        code
+        name
+        privileges
+      }
+    }`);
+    expect(res.status, res.log).to.eql(200);
+    expect(res.body, res.log).to.haveOwnProperty("errors");
+    expect(res.body.errors[0].message, res.log).to.eql("Entry already exist");
   }
 
   @test

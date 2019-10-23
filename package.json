@@ -45,12 +45,15 @@
     "apollo-server-express": "^2.9.4",
     "bunyan": "^1.8.12",
     "express": "^4.17.1",
+    "iltorb": "^2.4.3",
     "js-yaml": "^3.13.1",
     "jsonwebtoken": "^8.5.1",
     "key-encoder": "^2.0.2",
     "mongodb": "^3.3.2",
     "node-netstat": "^1.8.0",
+    "node-zopfli-es": "^1.0.3",
     "reflect-metadata": "^0.1.13",
+    "shrink-ray-current": "^4.1.2",
     "source-map-support": "^0.5.13",
     "type-graphql": "^0.17.5"
   }

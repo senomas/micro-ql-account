@@ -1,7 +1,7 @@
 import { Length, MaxLength } from "class-validator";
-import { Field, ID, InputType, ObjectType } from "type-graphql";
+import { Field, ID, InputType, ObjectType, registerEnumType } from "type-graphql";
 
-import { Partial } from "./lib";
+import { Partial, OrderByType } from "./lib";
 
 @ObjectType()
 export class User {
@@ -67,6 +67,20 @@ export class FilterUserInput {
 
   @Field({ nullable: true })
   public nameRegex: string;
+}
+
+export enum UserField {
+  id = 'id', login = 'login', name = 'name'
+}
+registerEnumType(UserField, { name: 'UserField' });
+
+@InputType()
+export class OrderByUserInput {
+  @Field(type => UserField)
+  field: UserField;
+
+  @Field(type => OrderByType)
+  type: OrderByType;
 }
 
 @ObjectType()

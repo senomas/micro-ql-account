@@ -1,6 +1,6 @@
 import { Resolver } from "type-graphql";
 
-import { AddRoleInput, FilterRoleInput, PartialRole, Role, UpdateRoleInput } from "../schemas/role";
+import { CreateRoleInput, FilterRoleInput, PartialRole, Role, OrderByRoleInput, UpdateRoleInput } from "../schemas/role";
 
 import { createBaseResolver } from "./lib";
 
@@ -10,8 +10,9 @@ export class RoleResolver extends createBaseResolver({
   typeCls: Role,
   partialTypeCls: PartialRole,
   filterInput: FilterRoleInput,
-  addInput: AddRoleInput,
-  updateInput: UpdateRoleInput
+  orderByInput: OrderByRoleInput,
+  createInput: CreateRoleInput,
+  updateInput: UpdateRoleInput,
 }) {
   constructor() {
     super();

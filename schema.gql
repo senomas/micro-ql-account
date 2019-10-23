@@ -10,13 +10,6 @@ input AddMovieInput {
   genres: [String!]
 }
 
-input AddRoleInput {
-  code: String!
-  name: String!
-  description: String
-  privileges: [String!]!
-}
-
 input AddUserInput {
   login: String!
   name: String!
@@ -36,6 +29,13 @@ type Commit {
   subject: String!
   authorName: String!
   authorDate: DateTime!
+}
+
+input CreateRoleInput {
+  code: String!
+  name: String!
+  description: String
+  privileges: [String!]
 }
 
 """
@@ -76,16 +76,42 @@ type Movie {
   genres: [String!]
 }
 
+enum MovieField {
+  id
+  title
+  year
+}
+
 type Mutation {
-  addUser(data: AddUserInput!): User!
+  createUser(data: AddUserInput!): User!
   updateUsers(data: UpdateUserInput!, filter: FilterUserInput!): UpdateResponse!
   deleteUsers(filter: FilterUserInput!): DeleteResponse!
-  addRole(data: AddRoleInput!): Role!
+  createRole(data: CreateRoleInput!): Role!
   updateRoles(data: UpdateRoleInput!, filter: FilterRoleInput!): UpdateResponse!
   deleteRoles(filter: FilterRoleInput!): DeleteResponse!
-  addMovie(data: AddMovieInput!): Movie!
+  createMovie(data: AddMovieInput!): Movie!
   updateMovies(data: UpdateMovieInput!, filter: FilterMovieInput!): UpdateResponse!
   deleteMovies(filter: FilterMovieInput!): DeleteResponse!
+}
+
+input OrderByMovieInput {
+  field: MovieField!
+  type: OrderByType!
+}
+
+input OrderByRoleInput {
+  field: RoleField!
+  type: OrderByType!
+}
+
+enum OrderByType {
+  asc
+  desc
+}
+
+input OrderByUserInput {
+  field: UserField!
+  type: OrderByType!
 }
 
 type PartialMovie {
@@ -105,11 +131,11 @@ type PartialUser {
 
 type Query {
   user(id: ID!): User
-  users(filter: FilterUserInput, limit: Int, skip: Int): PartialUser
+  users(orderBy: [OrderByUserInput!], filter: FilterUserInput, limit: Int, skip: Int): PartialUser
   role(id: ID!): Role
-  roles(filter: FilterRoleInput, limit: Int, skip: Int): PartialRole
+  roles(orderBy: [OrderByRoleInput!], filter: FilterRoleInput, limit: Int, skip: Int): PartialRole
   movie(id: ID!): Movie
-  movies(filter: FilterMovieInput, limit: Int, skip: Int): PartialMovie
+  movies(orderBy: [OrderByMovieInput!], filter: FilterMovieInput, limit: Int, skip: Int): PartialMovie
   auth(clientKey: String!): Auth!
   logout: Boolean!
   accountInfo: ServerInfo!
@@ -121,7 +147,13 @@ type Role {
   code: String!
   name: String!
   description: String
-  privileges: [String!]!
+  privileges: [String!]
+}
+
+enum RoleField {
+  id
+  code
+  name
 }
 
 type ServerInfo {
@@ -167,6 +199,12 @@ type User {
   login: String!
   name: String!
   roles: [String!]!
+}
+
+enum UserField {
+  id
+  login
+  name
 }
 
 type UserToken {

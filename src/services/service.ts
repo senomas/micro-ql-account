@@ -86,3 +86,10 @@ export class ApolloInvalidClientKeyError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'InvalidClientKeyError' });
   }
 }
+
+export class ApolloDuplicateEntryError extends ApolloError {
+  constructor(data?: Record<string, any>) {
+    super('Entry already exist', 'ApolloDuplicateEntryError', data);
+    Object.defineProperty(this, 'name', { value: 'ApolloDuplicateEntryError' });
+  }
+}

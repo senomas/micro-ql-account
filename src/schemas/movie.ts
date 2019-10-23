@@ -1,7 +1,7 @@
 import { Length, MaxLength } from "class-validator";
-import { Field, ID, InputType, Int, ObjectType } from "type-graphql";
+import { Field, ID, InputType, Int, ObjectType, registerEnumType } from "type-graphql";
 
-import { Partial } from "./lib";
+import { Partial, OrderByType } from "./lib";
 
 @ObjectType()
 export class Movie {
@@ -64,6 +64,20 @@ export class FilterMovieInput {
 
   @Field(type => Int, { nullable: true })
   public year: number;
+}
+
+export enum MovieField {
+  id = 'id', title = 'title', year = 'year'
+}
+registerEnumType(MovieField, { name: 'MovieField' });
+
+@InputType()
+export class OrderByMovieInput {
+  @Field(type => MovieField)
+  field: MovieField;
+
+  @Field(type => OrderByType)
+  type: OrderByType;
 }
 
 @ObjectType()

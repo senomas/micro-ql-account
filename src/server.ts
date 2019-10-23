@@ -1,8 +1,9 @@
 import smap = require("source-map-support");
 import 'reflect-metadata';
 import { ApolloServer } from 'apollo-server-express';
+import shrinkRay from 'shrink-ray-current';
 import express from 'express';
-import { buildSchema, MiddlewareFn, MiddlewareInterface, NextFn, ResolverData } from 'type-graphql';
+import { buildSchema, MiddlewareFn } from 'type-graphql';
 import fs = require("fs");
 import path = require("path");
 
@@ -171,6 +172,7 @@ export async function bootstrap() {
   });
 
   const app = express();
+  app.use(shrinkRay());
   server.applyMiddleware({ app });
 
   const port = parseInt(process.env.PORT, 10 || 4000);

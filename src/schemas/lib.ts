@@ -1,4 +1,4 @@
-import { ClassType, Field, Int, ObjectType } from "type-graphql";
+import { ClassType, Field, Int, ObjectType, registerEnumType, ID } from "type-graphql";
 
 export function Partial<TItem>(TItemClass: ClassType<TItem>) {
 
@@ -12,6 +12,11 @@ export function Partial<TItem>(TItemClass: ClassType<TItem>) {
   }
   return PartialClass;
 }
+
+export enum OrderByType {
+  asc = 'asc', desc = 'desc'
+}
+registerEnumType(OrderByType, { name: 'OrderByType' });
 
 @ObjectType()
 export class UpdateResponse {

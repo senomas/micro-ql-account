@@ -1,7 +1,7 @@
 import { Length, MaxLength } from "class-validator";
-import { Authorized, Field, ID, InputType, ObjectType } from "type-graphql";
+import { Field, ID, InputType, ObjectType, registerEnumType } from "type-graphql";
 
-import { Partial } from "./lib";
+import { Partial, OrderByType } from "./lib";
 
 @ObjectType()
 export class Role {
@@ -17,12 +17,12 @@ export class Role {
   @Field({ nullable: true })
   public description?: string;
 
-  @Field(type => [String])
+  @Field(type => [String], { nullable: true })
   public privileges: string[];
 }
 
 @InputType()
-export class AddRoleInput {
+export class CreateRoleInput {
   @Field()
   @Length(3, 100)
   public code: string;
@@ -35,7 +35,7 @@ export class AddRoleInput {
   @MaxLength(500)
   public description?: string;
 
-  @Field(type => [String])
+  @Field(type => [String], { nullable: true })
   public privileges: string[];
 }
 
@@ -70,6 +70,20 @@ export class FilterRoleInput {
 
   @Field({ nullable: true })
   public nameRegex: string;
+}
+
+export enum RoleField {
+  id = 'id', code = 'code', name = 'name'
+}
+registerEnumType(RoleField, { name: 'RoleField' });
+
+@InputType()
+export class OrderByRoleInput {
+  @Field(type => RoleField)
+  field: RoleField;
+
+  @Field(type => OrderByType)
+  type: OrderByType;
 }
 
 @ObjectType()

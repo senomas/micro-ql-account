@@ -1,6 +1,6 @@
 import { Resolver } from "type-graphql";
 
-import { AddMovieInput, FilterMovieInput, Movie, PartialMovie, UpdateMovieInput } from "../schemas/movie";
+import { AddMovieInput, FilterMovieInput, Movie, PartialMovie, UpdateMovieInput, OrderByMovieInput } from "../schemas/movie";
 
 import { createBaseResolver } from "./lib";
 
@@ -10,7 +10,8 @@ export class MovieResolver extends createBaseResolver({
   typeCls: Movie,
   partialTypeCls: PartialMovie,
   filterInput: FilterMovieInput,
-  addInput: AddMovieInput,
+  orderByInput: OrderByMovieInput,
+  createInput: AddMovieInput,
   updateInput: UpdateMovieInput
 }) {
   constructor() {
