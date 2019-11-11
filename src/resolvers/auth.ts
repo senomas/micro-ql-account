@@ -1,19 +1,12 @@
-import * as fs from "fs";
-import * as os from "os";
-import {
-  Arg,
-  Ctx,
-  FieldResolver,
-  Int,
-  Query,
-  Resolver,
-  Root,
-} from "type-graphql";
+import * as fs from 'fs';
+import * as os from 'os';
+import { Arg, Ctx, FieldResolver, Int, Query, Resolver, Root, Mutation, UseMiddleware } from 'type-graphql';
 
-import { getUser } from "../authentication";
-import { Auth, ServerInfo, Token, UserToken } from "../schemas/auth";
-import { AuthService } from "../services/auth";
-import { logger } from "../services/service";
+import { config } from '../config';
+import { Auth, AuthConfig, ServerInfo, Token, UserToken } from '../schemas/auth';
+import { AuthService } from '../services/auth';
+import { logger } from '../services/service';
+import { ResolveTime } from '../server';
 
 @Resolver(of => Auth)
 export class AuthResolver {
@@ -22,7 +15,7 @@ export class AuthResolver {
     return new AuthService(clientKey);
   }
 
-  @Query(returns => Boolean)
+  @Mutation(returns => Boolean)
   public async logout(@Ctx() ctx): Promise<boolean> {
     logger.info({ ctx }, "logout");
     const svc = new AuthService(ctx.user.ck);
@@ -30,6 +23,11 @@ export class AuthResolver {
       clientIP: ctx.remoteAddress,
       userAgent: ctx.headers["user-agent"]
     });
+  }
+
+  @Query(returns => AuthConfig)
+  public authConfig(): AuthConfig {
+    return config.auth;
   }
 
   @Query(returns => ServerInfo)
@@ -76,6 +74,7 @@ export class AuthResolver {
   }
 
   @FieldResolver(of => String)
+  @UseMiddleware(ResolveTime)
   public async salt(
     @Root() svc: AuthService,
     @Arg("xlogin") xlogin: string
@@ -84,6 +83,7 @@ export class AuthResolver {
   }
 
   @FieldResolver(of => Token)
+  // @UseMiddleware(ResolveTime)
   public async login(
     @Ctx() ctx,
     @Root() svc: AuthService,

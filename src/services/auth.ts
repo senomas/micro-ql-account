@@ -5,7 +5,7 @@ import { config } from "../config";
 import { Token } from "../schemas/auth";
 
 import { mongodb } from "./mongodb";
-import { accountKey, ApolloInvalidClientKeyError, ApolloInvalidPasswordError, ApolloMultipleSessionError, ApolloSessionExpiredError, ApolloUnknownKeyIDError, ApolloUserNotFoundError, logger } from "./service";
+import { moduleKey, ApolloInvalidClientKeyError, ApolloInvalidPasswordError, ApolloMultipleSessionError, ApolloSessionExpiredError, ApolloUnknownKeyIDError, ApolloUserNotFoundError, logger } from "./service";
 
 export class AuthService {
   public serverKey: string;
@@ -14,8 +14,8 @@ export class AuthService {
   private aesSalt: Buffer;
 
   constructor(public clientKey: string) {
-    this.serverKey = accountKey.getPublicKey().toString("base64");
-    this.secretKey = accountKey.computeSecret(
+    this.serverKey = moduleKey.getPublicKey().toString("base64");
+    this.secretKey = moduleKey.computeSecret(
       Buffer.from(this.clientKey, "base64")
     );
     this.aesKey = crypto.pbkdf2Sync(

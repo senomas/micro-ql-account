@@ -7,10 +7,10 @@ auth:
   salt: d3nm4s3n0
   curves: secp256k1
   aesKey:
-    iterations: 3191
+    iterations: 191
     hashBytes: 32
   aesSalt:
-    iterations: 3297
+    iterations: 297
     hashBytes: 16
   loginExpiry: 120
   # singleSession: true
@@ -20,7 +20,7 @@ auth:
   tokenExpiry: 30
   sessionExpiry: 300
   pbkdf2:
-    iterations: 3573
+    iterations: 573
     hashBytes: 64
   pbkdf2App:
     iterations: 7473

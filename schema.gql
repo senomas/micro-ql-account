@@ -23,6 +23,17 @@ type Auth {
   login(expiry: Int, xhpassword: String!, xlogin: String!): Token!
 }
 
+type AuthConfig {
+  loginExpiry: Int!
+  sessionExpiry: Int!
+  tokenExpiry: Int!
+}
+
+type AuthConfigPbkdf2 {
+  iterations: Int!
+  curves: Int!
+}
+
 type Commit {
   hash: String!
   abbrevHash: String!
@@ -92,6 +103,7 @@ type Mutation {
   createMovie(data: AddMovieInput!): Movie!
   updateMovies(data: UpdateMovieInput!, filter: FilterMovieInput!): UpdateResponse!
   deleteMovies(filter: FilterMovieInput!): DeleteResponse!
+  logout: Boolean!
 }
 
 input OrderByMovieInput {
@@ -137,7 +149,7 @@ type Query {
   movie(id: ID!): Movie
   movies(orderBy: [OrderByMovieInput!], filter: FilterMovieInput, limit: Int, skip: Int): PartialMovie
   auth(clientKey: String!): Auth!
-  logout: Boolean!
+  authConfig: AuthConfig!
   accountInfo: ServerInfo!
   me(ts: String): UserToken
 }

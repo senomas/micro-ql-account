@@ -39,11 +39,11 @@ export const logger = bunyan.createLogger(
       path: `${process.env.LOGGER_PATH || config.logger.path || "."}/${appName}-${os.hostname()}.log`,
     }]
   } : { name: appName, serializers });
-const raw = Buffer.from(keyEncoder.encodePrivate(config.keys.account.pkey, "pem", "raw"), "hex").toString("base64");
-logger.info({ raw, pem: config.keys.account.pkey }, "keys");
+const raw = Buffer.from(keyEncoder.encodePrivate(config.keys[appName].pkey, "pem", "raw"), "hex").toString("base64");
+logger.info({ raw, pem: config.keys[appName].pkey }, "keys");
 
-export const accountKey = crypto.createECDH(config.auth.curves);
-accountKey.setPrivateKey(raw, "base64");
+export const moduleKey = crypto.createECDH(config.auth.curves);
+moduleKey.setPrivateKey(raw, "base64");
 
 export class ApolloUserNotFoundError extends ApolloError {
   constructor(data?: Record<string, any>) {

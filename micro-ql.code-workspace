@@ -4,7 +4,16 @@
 			"path": "."
 		},
 		{
-			"path": "/home/seno/Documents/microql/client-vue"
+			"path": "/home/seno/Documents/microql/packet-connector"
+		},
+		{
+			"path": "/home/seno/Documents/microql/core-account-basic"
+		},
+		{
+			"path": "/home/seno/Documents/microql/mockup-core"
+		},
+		{
+			"path": "/home/seno/Documents/microql/elk"
 		}
 	],
 	"settings": {}

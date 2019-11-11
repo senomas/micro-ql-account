@@ -146,7 +146,7 @@ export class BaseTest {
 
   public async postLogout() {
     const res = await this.post(`
-      {
+      mutation {
         logout
       }`,
       { token: values.token }
