@@ -12,16 +12,16 @@ export const customAuthChecker: AuthChecker<any> = (
   }
   const path = ps.join(".");
   const user = context.user;
-  const error = roles.indexOf("@null") < 0;
+  const notNull = roles.indexOf("@null") < 0;
   if (!user) {
-    logger.info({ path, authPass: false, user, err: error }, "customAuthChecker");
-    if (error) {
+    logger.info({ path, user }, "auth-failed");
+    if (notNull) {
       throw new UnauthorizedError();
     }
     return false;
   }
   if (roles.filter(v => !v.startsWith("@")).length === 0) {
-    logger.info({ path, authPass: true, user, roles, err: error }, "customAuthChecker");
+    logger.info({ path, user, roles }, "auth-passed");
     return true;
   }
   let pass = false;
@@ -29,8 +29,9 @@ export const customAuthChecker: AuthChecker<any> = (
     if (role.startsWith("!")) {
       role = role.substring(0, -1);
       if (user.p.indexOf(role) < 0) {
-        if (error) {
-          return false;
+        logger.info({ path, user, roles, role }, "auth-failed");
+        if (notNull) {
+          throw new ForbiddenError();
         }
         return false;
       }
@@ -39,8 +40,8 @@ export const customAuthChecker: AuthChecker<any> = (
       pass = true;
     }
   }
-  logger.info({ path, authPass: pass, user, roles, err: error }, "customAuthChecker");
-  if (error && !pass) {
+  logger.info({ path, user, roles }, pass ? "auth-passed" : "auth-failed");
+  if (notNull && !pass) {
     throw new ForbiddenError();
   }
   return pass;
