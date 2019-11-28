@@ -13,6 +13,9 @@ async function tsc() {
 }
 
 async function build() {
+  await shell.exec("yarn --frozen-lockfile", {
+    async: false
+  });
   await tsc();
   await copyData();
   const commits = gitlog({

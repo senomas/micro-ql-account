@@ -3,21 +3,25 @@ import { AuthChecker, ForbiddenError, UnauthorizedError } from "type-graphql";
 import { logger } from "./services/service";
 
 export const customAuthChecker: AuthChecker<any> = (
-  { root, args, context, info },
+  { context, info },
   roles,
 ) => {
-  logger.info({ root, args, context, info }, "customAuthChecker");
+  const ps = [];
+  for (let p = info.path; p; p = p.prev) {
+    ps.unshift(p.key);
+  }
+  const path = ps.join(".");
   const user = context.user;
   const error = roles.indexOf("@null") < 0;
   if (!user) {
-    logger.info({ user, roles }, "customAuthChecker not login");
+    logger.info({ path, authPass: false, user, err: error }, "customAuthChecker");
     if (error) {
       throw new UnauthorizedError();
     }
     return false;
   }
   if (roles.filter(v => !v.startsWith("@")).length === 0) {
-    logger.info({ pass: true, user, roles }, "customAuthChecker");
+    logger.info({ path, authPass: true, user, roles, err: error }, "customAuthChecker");
     return true;
   }
   let pass = false;
@@ -35,7 +39,7 @@ export const customAuthChecker: AuthChecker<any> = (
       pass = true;
     }
   }
-  logger.info({ pass, user, roles }, "customAuthChecker");
+  logger.info({ path, authPass: pass, user, roles, err: error }, "customAuthChecker");
   if (error && !pass) {
     throw new ForbiddenError();
   }

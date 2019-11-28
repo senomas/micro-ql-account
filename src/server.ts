@@ -1,9 +1,9 @@
 import smap = require("source-map-support");
 import 'reflect-metadata';
 import { ApolloServer } from 'apollo-server-express';
-import shrinkRay from 'shrink-ray-current';
 import express from 'express';
-import { buildSchema, MiddlewareFn } from 'type-graphql';
+import shrinkRay from 'shrink-ray-current';
+import { buildSchema } from 'type-graphql';
 import fs = require("fs");
 import path = require("path");
 
@@ -14,20 +14,14 @@ import { AuthResolver } from './resolvers/auth';
 import { MovieResolver } from './resolvers/movie';
 import { RoleResolver } from './resolvers/role';
 import { UserResolver } from './resolvers/user';
-import { mongodb } from "./services/mongodb";
+import { ErrorLoggerMiddleware } from './services/error-logger';
+import { mongodb } from './services/mongodb';
 import { initMovie } from './services/movie';
 import { initRole } from './services/role';
 import { logger, NODE_ENV } from './services/service';
 import { initUser } from './services/user';
+
 smap.install();
-
-
-export const ResolveTime: MiddlewareFn = async ({ info }, next) => {
-  const start = Date.now();
-  await next();
-  const responseTime = Date.now() - start;
-  logger.info({ path: `${info.parentType.name}.${info.fieldName}`, responseTime }, 'resolve time');
-};
 
 class BasicLogging {
   public requestDidStart(o) {
@@ -43,6 +37,7 @@ export async function bootstrap() {
   const schema = await buildSchema({
     resolvers: [AuthResolver, RoleResolver, UserResolver, MovieResolver],
     authChecker: customAuthChecker,
+    globalMiddlewares: [ErrorLoggerMiddleware],
     authMode: "null",
     emitSchemaFile: true,
     dateScalarMode: "isoDate"

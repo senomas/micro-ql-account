@@ -14,6 +14,12 @@
 		},
 		{
 			"path": "/home/seno/Documents/microql/elk"
+		},
+		{
+			"path": "/home/seno/Documents/microql/event-writer"
+		},
+		{
+			"path": "/home/seno/Documents/microql/client-react"
 		}
 	],
 	"settings": {}

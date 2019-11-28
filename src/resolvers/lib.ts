@@ -1,9 +1,10 @@
-import { ObjectID } from "mongodb";
-import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from "type-graphql";
+import { ObjectID } from 'mongodb';
+import { Arg, Authorized, ID, Int, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql';
 
-import { DeleteResponse, UpdateResponse, OrderByType } from "../schemas/lib";
-import { mongodb } from "../services/mongodb";
-import { logger, ApolloDuplicateEntryError } from "../services/service";
+import { DeleteResponse, OrderByType, UpdateResponse } from '../schemas/lib';
+import { mongodb } from '../services/mongodb';
+import { ResolveTimeMiddleware } from '../services/resolve-time';
+import { ApolloDuplicateEntryError, logger } from '../services/service';
 
 export interface CreateBaseResolverOption {
   suffix: string;
@@ -45,6 +46,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Query(returns => opt.typeCls, { nullable: true, name: `${opt.suffix}` })
     @Authorized([`${opt.suffix}.read`])
+    @UseMiddleware(ResolveTimeMiddleware)
     public async findByID(
       @Arg("id", of => ID) id: string
     ) {
@@ -59,6 +61,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Query(returns => opt.partialTypeCls, { nullable: true, name: `${opt.suffixPlurals}` })
     @Authorized([`${opt.suffix}.read`])
+    @UseMiddleware(ResolveTimeMiddleware)
     public async find(
       @Arg("skip", of => Int, { nullable: true }) skip: number,
       @Arg("limit", of => Int, { nullable: true }) limit: number,
@@ -98,6 +101,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Mutation(returns => opt.typeCls, { name: `create${opt.suffixCapitalize}` })
     @Authorized([`${opt.suffix}.create`])
+    @UseMiddleware(ResolveTimeMiddleware)
     public async create(@Arg("data", of => opt.createInput) data) {
       // FIXME delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -125,6 +129,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Mutation(returns => UpdateResponse, { name: `update${opt.suffixCapitalizePlurals}` })
     @Authorized([`${opt.suffix}.update`])
+    @UseMiddleware(ResolveTimeMiddleware)
     public async updates(
       @Arg("filter", of => opt.filterInput) filter,
       @Arg("data", of => opt.updateInput) data
@@ -146,6 +151,7 @@ export function createBaseResolver(opt: CreateBaseResolverOption) {
 
     @Mutation(returns => DeleteResponse, { name: `delete${opt.suffixCapitalizePlurals}` })
     @Authorized([`${opt.suffix}.delete`])
+    @UseMiddleware(ResolveTimeMiddleware)
     public async deletes(@Arg("filter", of => opt.filterInput) filter): Promise<DeleteResponse> {
       // FIXME delay
       await new Promise(resolve => setTimeout(resolve, 1000));
