@@ -2,7 +2,7 @@ import crypto from "crypto";
 import * as jwt from "jsonwebtoken";
 
 import { config } from "../config";
-import { Token } from "../schemas/auth";
+import { Token, LoginResponse } from "../schemas/auth";
 
 import { mongodb } from "./mongodb";
 import { moduleKey, ApolloInvalidClientKeyError, ApolloInvalidPasswordError, ApolloMultipleSessionError, ApolloSessionExpiredError, ApolloUnknownKeyIDError, ApolloUserNotFoundError, logger } from "./service";
@@ -13,7 +13,7 @@ export class AuthService {
   private aesKey: Buffer;
   private aesSalt: Buffer;
 
-  constructor(public clientKey: string) {
+  constructor(public ctx: any, public clientKey: string) {
     this.serverKey = moduleKey.getPublicKey().toString("base64");
     this.secretKey = moduleKey.computeSecret(
       Buffer.from(this.clientKey, "base64")
@@ -51,10 +51,11 @@ export class AuthService {
       ]).toString("base64");
     }
     logger.info({ xlogin, login }, "invalid login");
-    throw new ApolloUserNotFoundError({
-      xlogin,
-      login
-    });
+    throw {
+      path: "auth.salt",
+      name: "UserNotFoundError",
+      value: JSON.stringify({ xlogin, login })
+    };
   }
 
   public async login(xlogin: string, xhpassword: string, expiry: number, info: any = {}): Promise<Token> {
@@ -99,17 +100,17 @@ export class AuthService {
             }
           }
           if (Object.keys(sessions).length > 0) {
-            throw new ApolloMultipleSessionError({
-              xlogin,
-              login,
-              xhpassword,
-              hpasswordInput,
-              debug: {
+            this.ctx.errors.push({
+              path: "auth.login",
+              name: "MultipleSessionError",
+              value: JSON.stringify({
+                xlogin,
                 login,
-                user,
-                sessions
-              }
+                xhpassword,
+                hpasswordInput,
+              })
             });
+            return null;
           }
         }
         await mongodb.models.user.updateOne({ login }, {
@@ -131,19 +132,25 @@ export class AuthService {
         return await this.generateToken(user, xlogin, expiry);
       }
       logger.info({ xlogin, login, user, hpasswordInput }, "invalid login");
-      throw new ApolloInvalidPasswordError({
-        xlogin,
-        xhpassword,
-        debug: {
-          hpasswordInput,
-          login, user
-        }
+      this.ctx.errors.push({
+        path: "auth.login",
+        name: "InvalidPasswordError",
+        value: JSON.stringify({
+          xlogin,
+          xhpassword
+        })
       });
+      return null;
     }
     logger.info({ xlogin, login }, "invalid login");
-    throw new ApolloUserNotFoundError({
-      xlogin
+    this.ctx.errors.push({
+      path: "auth.login",
+      name: "UserNotFoundError",
+      value: JSON.stringify({
+        xlogin
+      })
     });
+    return null;
   }
 
   public async refresh(token: string): Promise<Token> {
@@ -152,18 +159,23 @@ export class AuthService {
     );
     const keyid = header.kid;
     if (!(config.keys[keyid] && config.keys[keyid].key)) {
-      throw new ApolloUnknownKeyIDError({
-        header,
-        token,
+      this.ctx.errors.push({
+        path: "auth.login",
+        name: "UnknownKeyIDError",
+        value: JSON.stringify({ header, token })
       });
+      return null;
     }
     const refreshObj = jwt.decode(token, config.keys[keyid].key);
     const expired = (refreshObj.iat + config.auth.sessionExpiry) * 1000;
     if (expired < Date.now()) {
       logger.info({ token, expired, now: Date.now() }, "jwt refresh");
-      throw new ApolloSessionExpiredError({
-        expired: new Date(expired)
+      this.ctx.errors.push({
+        path: "auth.login",
+        name: "SessionExpiredError",
+        value: JSON.stringify({ expired })
       });
+      return null;
     }
     const xlogin = refreshObj.xl;
     const aesd = crypto.createDecipheriv("aes-256-ctr", this.aesKey, this.aesSalt);
@@ -202,10 +214,18 @@ export class AuthService {
         }
         if (session) {
           if (session.clientKey !== refreshObj.ck) {
-            throw new ApolloInvalidClientKeyError();
+            this.ctx.errors.push({
+              path: "auth.login",
+              name: "InvalidClientKeyError"
+            });
+            return null;
           }
         } else {
-          throw new ApolloInvalidClientKeyError();
+          this.ctx.errors.push({
+            path: "auth.login",
+            name: "InvalidClientKeyError"
+          });
+          return null;
         }
       } else {
         const sessions = {};
@@ -235,15 +255,22 @@ export class AuthService {
           }
         }
         if (!sessions[refreshObj.ck]) {
-          throw new ApolloInvalidClientKeyError();
+          this.ctx.errors.push({
+            path: "auth.login",
+            name: "InvalidClientKeyError"
+          });
+          return null;
         }
       }
       return await this.generateToken(user, xlogin);
     }
     logger.info({ xlogin, login }, "invalid login");
-    throw new ApolloUserNotFoundError({
-      xlogin
+    this.ctx.errors.push({
+      path: "auth.login",
+      name: "UserNotFoundError",
+      value: JSON.stringify({ xlogin })
     });
+    return null;
   }
 
   public async logout(xlogin: string, info: any = {}): Promise<boolean> {
@@ -274,15 +301,15 @@ export class AuthService {
       return res.modifiedCount === 1;
     }
     logger.info({ xlogin, login }, "invalid login");
-    throw new ApolloUserNotFoundError({
-      xlogin,
-      debug: {
-        login
-      }
+    this.ctx.errors.push({
+      path: "auth.login",
+      name: "UserNotFoundError",
+      value: JSON.stringify({ xlogin })
     });
+    return null;
   }
 
-  public async generateToken(user, xlogin, expiry = null): Promise<Token> {
+  public async generateToken(user, xlogin, expiry = null): Promise<LoginResponse> {
     // FIXME validate max expiry
     const privileges = (await mongodb.models.role.find({ code: { $in: user.roles } })
       .toArray()).reduce((acc, role) => {

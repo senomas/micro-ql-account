@@ -3,24 +3,34 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+directive @extends on INTERFACE | OBJECT
+
+directive @external on FIELD_DEFINITION | OBJECT
+
+directive @key(fields: String!) on INTERFACE | OBJECT
+
+directive @provides(fields: String!) on FIELD_DEFINITION
+
+directive @requires(fields: String!) on FIELD_DEFINITION
+
 input AddMovieInput {
-  title: String!
-  year: Int!
   cast: [String!]
   genres: [String!]
+  title: String!
+  year: Int!
 }
 
 input AddUserInput {
+  description: String
   login: String!
   name: String!
-  description: String
   roles: [String!]!
 }
 
 type Auth {
+  login(expiry: Int, xhpassword: String!, xlogin: String!): LoginResponse!
+  salt(xlogin: String!): Salt!
   serverKey: String!
-  salt(xlogin: String!): String!
-  login(expiry: Int, xhpassword: String!, xlogin: String!): Token!
 }
 
 type AuthConfig {
@@ -29,23 +39,18 @@ type AuthConfig {
   tokenExpiry: Int!
 }
 
-type AuthConfigPbkdf2 {
-  iterations: Int!
-  curves: Int!
-}
-
 type Commit {
-  hash: String!
   abbrevHash: String!
-  subject: String!
-  authorName: String!
   authorDate: DateTime!
+  authorName: String!
+  hash: String!
+  subject: String!
 }
 
 input CreateRoleInput {
   code: String!
-  name: String!
   description: String
+  name: String!
   privileges: [String!]
 }
 
@@ -58,6 +63,12 @@ type DeleteResponse {
   deleted: Int!
 }
 
+type Error {
+  name: String
+  path: String
+  value: String
+}
+
 input FilterMovieInput {
   id: ID
   title: String
@@ -66,8 +77,8 @@ input FilterMovieInput {
 }
 
 input FilterRoleInput {
-  id: ID
   code: String
+  id: ID
   name: String
   nameRegex: String
 }
@@ -79,12 +90,18 @@ input FilterUserInput {
   nameRegex: String
 }
 
+type LoginResponse {
+  errors: [Error!]
+  seq: String
+  token: String
+}
+
 type Movie {
+  cast: [String!]
+  genres: [String!]
   id: String!
   title: String!
   year: Int!
-  cast: [String!]
-  genres: [String!]
 }
 
 enum MovieField {
@@ -94,16 +111,16 @@ enum MovieField {
 }
 
 type Mutation {
-  createUser(data: AddUserInput!): User!
-  updateUsers(data: UpdateUserInput!, filter: FilterUserInput!): UpdateResponse!
-  deleteUsers(filter: FilterUserInput!): DeleteResponse!
-  createRole(data: CreateRoleInput!): Role!
-  updateRoles(data: UpdateRoleInput!, filter: FilterRoleInput!): UpdateResponse!
-  deleteRoles(filter: FilterRoleInput!): DeleteResponse!
   createMovie(data: AddMovieInput!): Movie!
-  updateMovies(data: UpdateMovieInput!, filter: FilterMovieInput!): UpdateResponse!
+  createRole(data: CreateRoleInput!): Role!
+  createUser(data: AddUserInput!): User!
   deleteMovies(filter: FilterMovieInput!): DeleteResponse!
+  deleteRoles(filter: FilterRoleInput!): DeleteResponse!
+  deleteUsers(filter: FilterUserInput!): DeleteResponse!
   logout: Boolean!
+  updateMovies(data: UpdateMovieInput!, filter: FilterMovieInput!): UpdateResponse!
+  updateRoles(data: UpdateRoleInput!, filter: FilterRoleInput!): UpdateResponse!
+  updateUsers(data: UpdateUserInput!, filter: FilterUserInput!): UpdateResponse!
 }
 
 input OrderByMovieInput {
@@ -142,49 +159,56 @@ type PartialUser {
 }
 
 type Query {
-  user(id: ID!): User
-  users(orderBy: [OrderByUserInput!], filter: FilterUserInput, limit: Int, skip: Int): PartialUser
-  role(id: ID!): Role
-  roles(orderBy: [OrderByRoleInput!], filter: FilterRoleInput, limit: Int, skip: Int): PartialRole
-  movie(id: ID!): Movie
-  movies(orderBy: [OrderByMovieInput!], filter: FilterMovieInput, limit: Int, skip: Int): PartialMovie
+  account: ServerInfo!
   auth(clientKey: String!): Auth!
   authConfig: AuthConfig!
-  accountInfo: ServerInfo!
   me(ts: String): UserToken
+  movie(id: ID!): Movie
+  movies(filter: FilterMovieInput, limit: Int, orderBy: [OrderByMovieInput!], skip: Int): PartialMovie
+  role(id: ID!): Role
+  roles(filter: FilterRoleInput, limit: Int, orderBy: [OrderByRoleInput!], skip: Int): PartialRole
+  user(id: ID!): User
+  users(filter: FilterUserInput, limit: Int, orderBy: [OrderByUserInput!], skip: Int): PartialUser
 }
 
 type Role {
-  id: ID!
   code: String!
-  name: String!
   description: String
+  id: ID!
+  name: String!
   privileges: [String!]
 }
 
 enum RoleField {
-  id
   code
+  id
   name
 }
 
+type Salt {
+  error: Error
+  value: String
+}
+
 type ServerInfo {
-  host: String!
-  time: DateTime!
   buildTime: DateTime!
   commits: [Commit!]!
+  errors: [Error!]
+  host: String!
+  time: DateTime!
 }
 
 type Token {
-  seq: String!
-  token: String!
+  errors: [Error!]
+  seq: String
+  value: String
 }
 
 input UpdateMovieInput {
-  title: String!
-  year: Int!
   cast: [String!]
   genres: [String!]
+  title: String!
+  year: Int!
 }
 
 type UpdateResponse {
@@ -194,15 +218,15 @@ type UpdateResponse {
 
 input UpdateRoleInput {
   code: String
-  name: String
   description: String
+  name: String
   privileges: [String!]
 }
 
 input UpdateUserInput {
+  description: String
   login: String
   name: String
-  description: String
   roles: [String!]
 }
 
@@ -220,12 +244,12 @@ enum UserField {
 }
 
 type UserToken {
-  time: DateTime
   clientKey: ID
-  xlogin: String
+  expiredAt: DateTime
+  issuedAt: DateTime
   name: String
   privileges: [String!]
-  issuedAt: DateTime
-  expiredAt: DateTime
+  time: DateTime
   token: Token
+  xlogin: String
 }

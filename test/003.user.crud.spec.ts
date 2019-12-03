@@ -103,8 +103,15 @@ export class UserCrudTest extends BaseTest {
           privileges
         }
       }
+      account {
+        errors {
+          path
+          name
+          value
+        }
+      }
     }`);
     expect(res.status, res.log).to.eql(200);
-    expect(res.body, res.log).to.haveOwnProperty("errors");
+    expect(res.body.data.account, res.log).to.haveOwnProperty("errors");
   }
 }

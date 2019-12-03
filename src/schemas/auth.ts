@@ -1,5 +1,7 @@
 import { Field, ID, ObjectType, Int } from "type-graphql";
 
+import { Error } from "./account";
+
 @ObjectType()
 export class Auth {
   @Field(type => String)
@@ -39,45 +41,36 @@ export class AuthConfig {
 }
 
 @ObjectType()
-export class Commit {
-  @Field()
-  public hash: string;
+export class Salt {
+  @Field(type => String, { nullable: true })
+  public value?: string;
 
-  @Field()
-  public abbrevHash: string;
-
-  @Field()
-  public subject: string;
-
-  @Field()
-  public authorName: string;
-
-  @Field()
-  public authorDate: Date;
+  @Field(type => Error, { nullable: true })
+  public error?: Error;
 }
 
 @ObjectType()
-export class ServerInfo {
-  @Field()
-  public host: string;
+export class LoginResponse {
+  @Field(type => String, { nullable: true })
+  public seq?: number;
 
-  @Field()
-  public time: Date;
+  @Field(type => String, { nullable: true })
+  public token?: string;
 
-  @Field()
-  public buildTime: Date;
-
-  @Field(type => [Commit])
-  public commits: Commit[];
+  @Field(type => [Error], { nullable: true })
+  public errors?: Error[];
 }
 
 @ObjectType()
 export class Token {
-  @Field(type => String)
-  public seq: number;
+  @Field(type => String, { nullable: true })
+  public seq?: number;
 
-  @Field(type => String)
-  public token: string;
+  @Field(type => String, { nullable: true })
+  public value?: string;
+
+  @Field(type => [Error], { nullable: true })
+  public errors?: Error[];
 }
 
 @ObjectType()
@@ -104,5 +97,5 @@ export class UserToken {
   public expiredAt: Date;
 
   @Field(type => Token, { nullable: true })
-  public token: Token;
+  public token?: Token;
 }

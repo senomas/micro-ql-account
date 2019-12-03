@@ -16,6 +16,7 @@ async function build() {
   await shell.exec("yarn --frozen-lockfile", {
     async: false
   });
+  await fix();
   await tsc();
   await copyData();
   const commits = gitlog({
@@ -39,18 +40,20 @@ async function copyData() {
 
 async function dockerUp() {
   await shell.exec("docker-compose -p micro-ql up -d", {
+    cwd: "../account",
     async: false
   });
 }
 
 async function dockerDown() {
   await shell.exec("docker-compose -p micro-ql down", {
+    cwd: "../account",
     async: false
   });
 }
 
 async function kill() {
-  await killPorts([5000])
+  await killPorts([5001])
 }
 
 async function run() {
@@ -60,7 +63,7 @@ async function run() {
     env: {
       PATH: process.env.PATH,
       NODE_ENV: "development",
-      PORT: 5000
+      PORT: 5001
     },
     async: false
   });
@@ -139,13 +142,13 @@ async function test() {
     env: {
       PATH: process.env.PATH,
       NODE_ENV: "test",
-      PORT: 5000
+      PORT: 5001
     }
   });
   proc.stdout.pipe(process.stdout);
   proc.stderr.pipe(process.stderr);
   console.log("waiting server...");
-  await waitPorts([5000])
+  await waitPorts([5001])
   console.log(
     `npx mocha -r ts-node/register ${
     args.bail ? "-b" : ""
@@ -159,7 +162,7 @@ async function test() {
       env: {
         PATH: process.env.PATH,
         NODE_ENV: "test",
-        TEST_SERVER: `http://localhost:5000`
+        TEST_SERVER: `http://localhost:5001`
       },
       async: false
     }

@@ -1,43 +1,58 @@
 import smap = require("source-map-support");
 import 'reflect-metadata';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, GraphQLExtension } from 'apollo-server-express';
 import express from 'express';
 import shrinkRay from 'shrink-ray-current';
-import { buildSchema } from 'type-graphql';
 import fs = require("fs");
 import path = require("path");
 
 import { getUser } from './authentication';
 import { customAuthChecker } from './authorization';
+import { buildFederatedSchema } from './buildFederatedSchema';
 import { config } from './config';
 import { AuthResolver } from './resolvers/auth';
 import { MovieResolver } from './resolvers/movie';
 import { RoleResolver } from './resolvers/role';
 import { UserResolver } from './resolvers/user';
-import { ErrorLoggerMiddleware } from './services/error-logger';
+import { LoggerMiddleware } from './services/logger';
 import { mongodb } from './services/mongodb';
 import { initMovie } from './services/movie';
 import { initRole } from './services/role';
 import { logger, NODE_ENV } from './services/service';
 import { initUser } from './services/user';
+import { AccountResolver } from "./resolvers/account";
 
 smap.install();
 
-class BasicLogging {
+class BasicLogging extends GraphQLExtension {
   public requestDidStart(o) {
-    logger.info({ query: o.queryString, variables: o.variables }, 'graphql request');
+    logger.info({ query: o.queryString, variables: o.variables }, 'graphql-request');
+    o.context.event = {
+      dataset: "graphql",
+      t: process.hrtime(),
+      start: new Date(),
+      kind: "event",
+      category: "process"
+    };
   }
 
-  public willSendResponse({ graphqlResponse }) {
-    logger.info({ gqlRes: graphqlResponse }, 'graphql response');
+  public willSendResponse({ context, graphqlResponse }) {
+    const event = context.event;
+    if (event) {
+      event.end = new Date();
+      const t = process.hrtime(event.t);
+      event.duration = t[0] * 1000000000 + t[1];
+      delete event.t;
+    }
+    logger.info({ gqlRes: graphqlResponse, event }, 'graphql-response');
   }
 }
 
 export async function bootstrap() {
-  const schema = await buildSchema({
-    resolvers: [AuthResolver, RoleResolver, UserResolver, MovieResolver],
+  const schema = await buildFederatedSchema({
+    resolvers: [AccountResolver, AuthResolver, RoleResolver, UserResolver, MovieResolver],
     authChecker: customAuthChecker,
-    globalMiddlewares: [ErrorLoggerMiddleware],
+    globalMiddlewares: [LoggerMiddleware],
     authMode: "null",
     emitSchemaFile: true,
     dateScalarMode: "isoDate"
@@ -157,9 +172,10 @@ export async function bootstrap() {
       return err;
     },
     context: async ({ req }) => {
-      const user = await getUser(req);
+      const errors = [];
+      const user = await getUser({ errors }, req);
       const remoteAddress = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-      return { user, headers: req.headers, remoteAddress };
+      return { user, headers: req.headers, remoteAddress, errors };
     },
     extensions: [() => {
       return new BasicLogging();

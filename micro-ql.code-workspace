@@ -20,6 +20,12 @@
 		},
 		{
 			"path": "/home/seno/Documents/microql/client-react"
+		},
+		{
+			"path": "/home/seno/Documents/microql/common"
+		},
+		{
+			"path": "/home/seno/Documents/microql/federated"
 		}
 	],
 	"settings": {}

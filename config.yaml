@@ -40,26 +40,16 @@ mongodb:
 
 keys:
   auth:
-    key: |
-      -----BEGIN PUBLIC KEY-----
-      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO5gl9qu1vfftugBe3j5fJetJUhbV
-      4GFtYCuLVvpGX44dgjmjjKQ6fAAiYagdQlo5FAlh4Mp3ua6kFk2G15tywA==
-      -----END PUBLIC KEY-----
     pkey: |
       -----BEGIN EC PRIVATE KEY-----
-      MHcCAQEEIOTTmjPnVkVphJ/YGgBynBBuBdhPM1grwX3b+eFpS3fAoAoGCCqGSM49
-      AwEHoUQDQgAEO5gl9qu1vfftugBe3j5fJetJUhbV4GFtYCuLVvpGX44dgjmjjKQ6
-      fAAiYagdQlo5FAlh4Mp3ua6kFk2G15tywA==
+      MHQCAQEEIK7gKuIqGu6jri+nqnUPrGLFJqcSNtRYLaD8PRXv0UVQoAcGBSuBBAAK
+      oUQDQgAEAckN6k0lflLvqIpEACUsNPubsVtHeom3YMT9ZrIGIITEukV/+S371KTg
+      yD1KC22ucwznpsffJQtEIihJcj2h3g==
       -----END EC PRIVATE KEY-----
   account:
-    key: |
-      -----BEGIN PUBLIC KEY-----
-      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEP9Xj+RfjpBxjmURMLozwuD5BhG8y
-      zdh7lwTUT0dkNLZuWbma+JLNBh8H/xVBx7Znu/aTKIICq10yNL0vHSVgEg==
-      -----END PUBLIC KEY-----
     pkey: |
       -----BEGIN EC PRIVATE KEY-----
-      MHcCAQEEILMJRGTXYxO2w25MQ/VLFEvFP6e2yaeHMCx9EWNz5pTBoAoGCCqGSM49
-      AwEHoUQDQgAEP9Xj+RfjpBxjmURMLozwuD5BhG8yzdh7lwTUT0dkNLZuWbma+JLN
-      Bh8H/xVBx7Znu/aTKIICq10yNL0vHSVgEg==
+      MHQCAQEEIBjo+SWvMNn0iXUCjtbUmAtiCxzf0v13GIGOfC2uuGlBoAcGBSuBBAAK
+      oUQDQgAEnpWaHslCxvRihdsihzEEGJrtZ5QVIVrkBZINy2fMMqB6P+hvjxa3Ptx8
+      JJtqID6o8sMi7V6sBt2cg39onv1JNg==
       -----END EC PRIVATE KEY-----

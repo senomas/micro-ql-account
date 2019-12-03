@@ -1,21 +1,21 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import {
-    Arg, Ctx, FieldResolver, Int, Mutation, Query, Resolver, Root, UseMiddleware
+  Arg, Ctx, FieldResolver, Int, Mutation, Query, Resolver, Root, UseMiddleware
 } from 'type-graphql';
 
 import { config } from '../config';
-import { Auth, AuthConfig, ServerInfo, Token, UserToken } from '../schemas/auth';
+import { Auth, AuthConfig, Token, UserToken, Salt, LoginResponse } from '../schemas/auth';
 import { AuthService } from '../services/auth';
-import { ResolveTimeMiddleware } from '../services/resolve-time';
 import { logger } from '../services/service';
+import { LoggerResolverMiddleware } from '../services/logger';
 
 @Resolver(of => Auth)
 export class AuthResolver {
   @Query(returns => Auth)
-  @UseMiddleware(ResolveTimeMiddleware)
-  public auth(@Arg("clientKey") clientKey: string): AuthService {
-    return new AuthService(clientKey);
+  @UseMiddleware(LoggerResolverMiddleware)
+  public auth(@Ctx() ctx, @Arg("clientKey") clientKey: string): AuthService {
+    return new AuthService(ctx, clientKey);
   }
 
   @Query(returns => AuthConfig)
@@ -23,68 +23,65 @@ export class AuthResolver {
     return config.auth;
   }
 
-  @Query(returns => ServerInfo)
-  public accountInfo(): ServerInfo {
-    const data = JSON.parse(fs.readFileSync("./dist/build.json").toString());
-    return {
-      host: os.hostname(),
-      time: new Date(),
-      buildTime: new Date(data.buildTime),
-      commits: data.commits
-        ? data.commits.map(v => ({
-          ...v,
-          authorDate: new Date(v.authorDate)
-        }))
-        : null
-    };
-  }
-
   @Query(returns => UserToken, { nullable: true })
-  @UseMiddleware(ResolveTimeMiddleware)
+  @UseMiddleware(LoggerResolverMiddleware)
   public async me(@Ctx() ctx, @Arg("ts", { nullable: true }) ts: string): Promise<UserToken> {
     logger.info({ ctx }, "me");
+    const res: any = { time: new Date(), privileges: [] };
     if (ctx.user) {
-      return {
-        time: new Date(),
-        clientKey: ctx.user.ck,
-        xlogin: ctx.user.xl,
-        name: ctx.user.n,
-        privileges: ctx.user.p,
-        issuedAt: new Date(ctx.user.iat * 1000),
-        expiredAt: new Date(ctx.user.exp * 1000),
-        token: ctx.user.token
-      };
+      res.clientKey = ctx.user.ck;
+      res.xlogin = ctx.user.xl;
+      res.name = ctx.user.n;
+      res.privileges = ctx.user.p;
+      res.issuedAt = new Date(ctx.user.iat * 1000);
+      res.expiredAt = new Date(ctx.user.exp * 1000);
+      const utoken = ctx.user.token;
+      if (utoken) {
+        res.token = {
+          seq: utoken.seq,
+          value: utoken.token
+        };
+      }
     }
-    return {
-      time: new Date(),
-      clientKey: null,
-      xlogin: null,
-      name: null,
-      privileges: [],
-      issuedAt: null,
-      expiredAt: null,
-      token: null
-    };
+    if (ctx.errors.length > 0) {
+      if (!res.token) {
+        res.token = {};
+      }
+      res.token.errors = ctx.errors;
+    }
+    return res;
   }
 
-  @FieldResolver(of => String)
-  @UseMiddleware(ResolveTimeMiddleware)
+  @FieldResolver(of => Salt)
+  @UseMiddleware(LoggerResolverMiddleware)
   public async salt(
     @Root() svc: AuthService,
     @Arg("xlogin") xlogin: string
-  ): Promise<string> {
-    return await svc.salt(xlogin);
+  ): Promise<Salt> {
+    try {
+      return {
+        value: await svc.salt(xlogin)
+      };
+    } catch (err) {
+      return {
+        error: {
+          path: err.path,
+          name: err.name,
+          value: err.value
+        }
+      };
+    }
   }
 
-  @FieldResolver(of => Token)
-  @UseMiddleware(ResolveTimeMiddleware)
+  @FieldResolver(of => LoginResponse)
+  @UseMiddleware(LoggerResolverMiddleware)
   public async login(
     @Ctx() ctx,
     @Root() svc: AuthService,
     @Arg("xlogin") xlogin: string,
     @Arg("xhpassword") xhpassword: string,
     @Arg("expiry", of => Int, { nullable: true }) expiry: number
-  ): Promise<Token> {
+  ): Promise<LoginResponse> {
     logger.info({ ctx }, "login");
     return await svc.login(xlogin, xhpassword, expiry, {
       clientIP: ctx.remoteAddress,
@@ -93,9 +90,9 @@ export class AuthResolver {
   }
 
   @Mutation(returns => Boolean)
-  @UseMiddleware(ResolveTimeMiddleware)
+  @UseMiddleware(LoggerResolverMiddleware)
   public async logout(@Ctx() ctx): Promise<boolean> {
-    const svc = new AuthService(ctx.user.ck);
+    const svc = new AuthService(ctx, ctx.user.ck);
     return await svc.logout(ctx.user.xl, {
       clientIP: ctx.remoteAddress,
       userAgent: ctx.headers["user-agent"]
